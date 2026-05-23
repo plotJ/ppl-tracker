@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="PPL"/>
+<title>PPL Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
+:root{--ac:#e84a2f;--ac2:#ff6b4d;--bg:#0f0f0f;--su:#1a1a1a;--su2:#242424;--br:#2e2e2e;--tx:#f0f0f0;--mu:#777;--gr:#22c55e}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;overflow:hidden}
+.screen{position:fixed;left:0;right:0;bottom:0;top:54px;top:env(safe-area-inset-top);overflow-y:auto;overflow-x:hidden;display:none;padding-bottom:env(safe-area-inset-bottom)}
+.screen.active{display:block}
+.hdr{position:sticky;top:0;z-index:10;background:var(--su);border-bottom:1px solid var(--br);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.hdr-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--ac)}
+.hdr-sub{font-size:12px;color:var(--mu);margin-top:1px}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:opacity .15s}
+.btn:active{opacity:.7}
+.btn-primary{background:var(--ac);color:#fff;padding:14px 20px;font-size:15px;border-radius:10px;width:100%}
+.btn-ghost{background:transparent;border:1px solid var(--br);color:var(--mu);padding:11px 18px;font-size:15px}
+.btn-sm{padding:11px 18px;font-size:15px}
+.card{background:var(--su);border:1px solid var(--br);border-radius:10px}
+.tag{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500}
+input[type=number],textarea{background:var(--su2);color:var(--tx);border:1px solid var(--br);border-radius:6px;padding:8px 10px;font-size:15px;width:100%;font-family:'DM Sans',sans-serif;outline:none;-webkit-appearance:none}
+input[type=number]:focus,textarea:focus{border-color:var(--ac)}
+textarea{resize:none}
+input::placeholder,textarea::placeholder{color:#555}
+.pill-strip{display:flex;overflow-x:auto;gap:6px;padding:10px 16px;border-bottom:1px solid var(--br);scrollbar-width:none}
+.pill-strip::-webkit-scrollbar{display:none}
+.pill{flex-shrink:0;padding:5px 11px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--br);background:var(--su2);color:var(--mu)}
+.pill.cur{background:var(--ac);color:#fff;border-color:var(--ac)}
+.pill.done{background:#1a3a1a;color:var(--gr);border-color:#2d5a2d}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:var(--su);border-top:1px solid var(--br);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:20}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0;cursor:pointer;border:none;background:transparent;color:var(--mu);font-family:'DM Sans',sans-serif;font-size:10px;gap:3px;-webkit-tap-highlight-color:transparent}
+.tab-btn.active{color:var(--ac)}
+.tab-btn svg{width:22px;height:22px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--su);border-top:1px solid var(--br);padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;z-index:20}
+.ex-title{font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:800;line-height:1.05;text-transform:uppercase;letter-spacing:.5px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
+.stat-box{background:var(--su);border:1px solid var(--br);border-radius:8px;padding:8px 6px;text-align:center}
+.stat-lbl{font-size:10px;color:var(--mu);letter-spacing:.5px;margin-bottom:2px}
+.stat-val{font-size:13px;font-weight:500;line-height:1.2}
+.set-row{display:grid;grid-template-columns:26px 1fr 1fr 44px;gap:8px;align-items:center}
+.set-num{font-size:13px;color:var(--mu);text-align:center;font-weight:500}
+.done-btn{height:40px;border-radius:8px;border:1px solid var(--br);background:var(--su2);color:var(--mu);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;width:100%}
+.done-btn.done{border-color:var(--gr);background:#14532d;color:var(--gr)}
+.sec-lbl{font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.note-prev{border-left:2px solid var(--br);padding-left:10px}
+.note-prev-meta{font-size:11px;color:var(--mu);margin-bottom:2px}
+.note-prev-text{font-size:14px;color:#ccc;line-height:1.4}
+.session-card{background:var(--su);border:1px solid var(--br);border-radius:10px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.session-card.done-card{border-color:#2d5a2d}
+.session-card:active{opacity:.7}
+.wk-btn{padding:10px 14px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--su);color:var(--mu);border:1px solid var(--br)}
+.wk-btn.active{border-color:var(--ac);color:var(--tx);font-weight:500}
+.ph-btn{flex:1;padding:12px 8px;border-radius:10px;text-align:center;cursor:pointer;font-family:'DM Sans',sans-serif;background:var(--su);color:var(--mu);border:1px solid var(--br)}
+.ph-btn.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+.hist-row{padding:12px 14px;border-bottom:1px solid var(--br)}
+.hist-row:last-child{border-bottom:none}
+.sub-btn{padding:6px 12px;border-radius:20px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;background:var(--su2);color:var(--mu);border:1px solid var(--br)}
+.sub-btn.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+.badge{width:8px;height:8px;border-radius:50%;background:var(--gr);display:inline-block}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="scr-home" class="screen active">
+  <div class="hdr">
+    <div>
+      <div class="hdr-title" style="color:var(--tx);font-size:28px">PPL <span style="color:var(--ac)">Tracker</span></div>
+      <div class="hdr-sub">Jeff Nippard 4x/Week</div>
+    </div>
+
+  </div>
+  <div style="padding:16px" id="home-body"></div>
+</div>
+
+<!-- WORKOUT -->
+<div id="scr-workout" class="screen">
+  <div class="hdr" id="wo-hdr"></div>
+  <div class="pill-strip" id="wo-pills"></div>
+  <div style="padding:16px;padding-bottom:120px" id="wo-body"></div>
+  <div class="bottom-nav" id="wo-nav"></div>
+</div>
+
+<!-- HISTORY -->
+<div id="scr-history" class="screen">
+  <div class="hdr">
+    <div><div class="hdr-title">History</div><div class="hdr-sub" id="hist-sub"></div></div>
+
+  </div>
+  <div style="padding:16px" id="hist-body"></div>
+</div>
+
+<!-- SESSION DETAIL (read-only view of completed session) -->
+<div id="scr-detail" class="screen">
+  <div class="hdr">
+    <div><div class="hdr-title" id="det-title"></div><div class="hdr-sub" id="det-sub"></div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" id="det-edit-btn">Edit</button>
+      <button class="btn btn-ghost btn-sm" onclick="goBack()">← Back</button>
+    </div>
+  </div>
+  <div style="padding:16px" id="det-body"></div>
+</div>
+
+<!-- SETTINGS -->
+<div id="scr-settings" class="screen">
+  <div class="hdr">
+    <div><div class="hdr-title">Settings</div><div class="hdr-sub">Google Sheets sync</div></div>
+
+  </div>
+  <div style="padding:16px" id="settings-body"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PROGRAM DATA
+// ═══════════════════════════════════════════════════════════
+const R = (v,n) => Array(n).fill(v);
+
+const PROGRAM = {phases:[
+  {id:1,name:"Phase 1",subtitle:"Base Hypertrophy",numWeeks:6,
+   weekLabels:["Week 1","Week 2","Week 3","Week 4","Week 5","Week 6 — Semi-Deload"],
+   sessionOrder:["Legs #1","Push #1","Pull #1","Full Body #1"],
+   sessions:{
+    "Legs #1":[
+      {name:"Squat",warmup:"3-4",working:[1,1,1,1,1,1],reps:["2-4","3-5","4-6","3-5","2-4","1-3"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~3-4 min",sub1:"Hack Squat",sub2:"DB Bulgarian Split Squat",notes:"Sit back and down, keep your upper back tight to the bar"},
+      {name:"Pause Squat (Back off)",warmup:"0",working:[2,2,2,2,2,2],reps:["5","5","5","5","5","5"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~3-4 min",sub1:"Pause Hack Squat",sub2:"Pause DB Bulgarian Split Squat",notes:"Drop the weight ~25% from your top set. 2 second pause at the bottom."},
+      {name:"Barbell RDL",warmup:"2",working:[3,3,3,3,3,2],reps:["8-10","8-10","8-10","8-10","8-10","8-10"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~2-3 min",sub1:"DB RDL",sub2:"45° Hyperextension",notes:"Neutral lower back, set your hips back, don't allow your spine to round"},
+      {name:"Walking Lunge",warmup:"1",working:[2,2,2,2,2,2],reps:["10","10","10","10","10","10"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~2-3 min",sub1:"DB Step-Up",sub2:"Goblet Squat",notes:"Medium strides, minimize the amount you push off your rear leg"},
+      {name:"Seated Leg Curl",warmup:"1",working:[3,3,3,3,3,2],reps:["10-12","10-12","10-12","10-12","10-12","10-12"],rpe:["9-10","9-10","9-10","9-10","9-10","8"],rest:"~1-2 min",sub1:"Lying Leg Curl",sub2:"Nordic Ham Curl",notes:"Focus on squeezing your hamstrings to move the weight"},
+      {name:"Leg Press Toe Press",warmup:"1",working:[4,4,4,4,4,2],reps:["10-12","10-12","10-12","10-12","10-12","10-12"],rpe:["9-10","9-10","9-10","9-10","9-10","8"],rest:"~1-2 min",sub1:"Seated Calf Raise",sub2:"Standing Calf Raise",notes:"Press all the way to your toes, stretch your calves at the bottom, don't bounce"},
+      {name:"Decline Plate-Weighted Crunch",warmup:"1",working:[3,3,3,3,3,2],reps:["10-12","10-12","10-12","10-12","10-12","10-12"],rpe:["9-10","9-10","9-10","9-10","9-10","8"],rest:"~1-2 min",sub1:"Cable Crunch",sub2:"Machine Crunch",notes:"Hold a plate or DB to your chest and crunch hard!"},
+    ],
+    "Push #1":[
+      {name:"Bench Press",warmup:"3-4",working:[1,1,1,1,1,1],reps:["3-5","3-5","2-4","2-4","3-5","3-5"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~3-4 min",sub1:"DB Bench Press",sub2:"Machine Chest Press",notes:"Comfortable arch, quick pause on the chest and explode up on each rep"},
+      {name:"Larsen Press",warmup:"0",working:[2,2,2,2,2,2],reps:["10","10","10","10","10","10"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~3-4 min",sub1:"DB Bench Press (No Leg Drive)",sub2:"Machine Chest Press (No Leg Drive)",notes:"Shoulder blades retracted and depressed. Slight arch in upper back. Zero leg drive."},
+      {name:"Standing DB Arnold Press",warmup:"2",working:[3,3,3,3,3,2],reps:["8-10","8-10","8-10","8-10","8-10","8-10"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~2-3 min",sub1:"Seated DB Shoulder Press",sub2:"Machine Shoulder Press",notes:"Start with elbows in front, palms facing in. Rotate dumbbells so palms face forward as you press."},
+      {name:"A1. Press-Around",warmup:"1",working:[2,2,2,2,2,2],reps:["12-15","12-15","12-15","12-15","12-15","12-15"],rpe:["9-10","9-10","9-10","9-10","9-10","8"],rest:"0 min (superset →)",sub1:"DB Flye",sub2:"Deficit Push Up",notes:"Brace with your non-working arm, squeeze your pecs by pressing the cable across your body"},
+      {name:"A2. Pec Static Stretch",warmup:"0",working:[2,2,2,2,2,2],reps:["30s HOLD","30s HOLD","30s HOLD","30s HOLD","30s HOLD","30s HOLD"],rpe:["N/A","N/A","N/A","N/A","N/A","N/A"],rest:"~1-2 min",sub1:"—",sub2:"—",notes:"Hold a pec stretch for 30 seconds at about 7/10 intensity"},
+      {name:"Cross-Body Cable Y-Raise",warmup:"1",working:[3,3,3,3,3,2],reps:["12-15","12-15","12-15","12-15","12-15","12-15"],rpe:["9-10","9-10","9-10","9-10","9-10","8"],rest:"~1-2 min",sub1:"DB Lateral Raise",sub2:"Machine Lateral Raise",notes:'Swing the cable out and up as if "drawing a sword" from your side'},
+      {name:"Squeeze-Only Tri Pressdown + OHT Ext",warmup:"1",working:[3,3,3,3,3,2],reps:["8+8","8+8","8+8","8+8","8+8","8+8"],rpe:["9-10","9-10","9-10","9-10","9-10","8"],rest:"~1-2 min",sub1:"Triceps Pressdown (12-15)",sub2:"DB Skull Crusher (12-15)",notes:"Bottom half of ROM for pressdowns (squeeze) + top half for overhead extensions (stretch)"},
+      {name:"N1-Style Cross-Body Tri Extension",warmup:"0",working:[2,2,2,2,2,2],reps:["10-12","10-12","10-12","10-12","10-12","10-12"],rpe:["10","10","10","10","10","8"],rest:"~1-2 min",sub1:"Single-Arm Tricep Pressdown",sub2:"Single-Arm Cable Tricep Kickback",notes:"Arm out to the side more than a regular pressdown. Feel the stretch as the cable moves across your torso."},
+    ],
+    "Pull #1":[
+      {name:"Lat Pulldown (Feeder Sets)",warmup:"0",working:[4,4,4,4,4,4],reps:["10","10","10","10","10","10"],rpe:["See Notes","See Notes","See Notes","See Notes","See Notes","See Notes"],rest:"~2-3 min",sub1:"Machine Pulldown",sub2:"Pull-Up",notes:"Build weight each set. Set 1: RPE 4-5. Set 2: RPE 6-7. Set 3: RPE 7-8. Set 4: Hit failure at 10 reps (your hard set)."},
+      {name:"Lat Pulldown (Failure Set + Dropset)",warmup:"0",working:[1,1,1,1,1,1],reps:["10+5 drop","10+5 drop","10+5 drop","10+5 drop","10+5 drop","10+5 drop"],rpe:["10","10","10","10","10","10"],rest:"~2-3 min",sub1:"Machine Pulldown",sub2:"Pull-Up",notes:"After failure at ~10 reps, strip weight 30-50% and do 5 more reps with controlled technique"},
+      {name:"Omni-Grip Machine Chest-Supported Row",warmup:"2",working:[3,3,3,3,3,3],reps:["10-12","10-12","10-12","10-12","10-12","10-12"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~2-3 min",sub1:"Incline Chest-Supported DB Row",sub2:"Cable Seated Row",notes:"Use 3 different grips for the 3 working sets (ideally wider to closer)"},
+      {name:"A1. Bottom-Half DB Lat Pullover",warmup:"1",working:[2,2,2,2,2,2],reps:["10-12","10-12","10-12","10-12","10-12","10-12"],rpe:["9-10","9-10","9-10","9-10","9-10","8"],rest:"0 min (superset →)",sub1:"Cable Lat Pullover",sub2:"1-Arm Lat Pull-In",notes:"Cut out the top half of the ROM — stay entirely in the stretched aspect"},
+      {name:"A2. Lat Static Stretch",warmup:"0",working:[2,2,2,2,2,2],reps:["30s HOLD","30s HOLD","30s HOLD","30s HOLD","30s HOLD","30s HOLD"],rpe:["N/A","N/A","N/A","N/A","N/A","N/A"],rest:"~1-2 min",sub1:"—",sub2:"—",notes:"Hold a lat stretch for 30 seconds at about 7/10 intensity"},
+      {name:"Omni-Direction Face Pull",warmup:"1",working:[3,3,3,3,3,3],reps:["12-15","12-15","12-15","12-15","12-15","12-15"],rpe:["9-10","9-10","9-10","9-10","9-10","8"],rest:"~1-2 min",sub1:"Reverse Cable Flye",sub2:"Bent-Over Reverse DB Flye",notes:"Set 1: low-to-high. Set 2: mid-range. Set 3: high-to-low."},
+      {name:"EZ-Bar Curl",warmup:"1",working:[3,3,3,3,3,2],reps:["6-8","6-8","6-8","6-8","6-8","6-8"],rpe:["9-10","9-10","9-10","9-10","9-10","8"],rest:"~1-2 min",sub1:"DB Curl",sub2:"Cable Curl",notes:"Focus on contracting your biceps, minimize torso momentum"},
+      {name:"Bottom-Half Preacher Curl",warmup:"0",working:[2,2,2,2,2,2],reps:["10-12","10-12","10-12","10-12","10-12","10-12"],rpe:["10","10","10","10","10","8"],rest:"~1-2 min",sub1:"Bottom-Half Spider Curl",sub2:"Bottom-Half Bayesian Curl",notes:"Stay entirely in the stretched aspect (bottom half of ROM only)"},
+    ],
+    "Full Body #1":[
+      {name:"Deadlift",warmup:"3-4",working:[1,1,1,1,1,1],reps:["5","4","3","2","1","4"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~3-5 min",sub1:"Trap Bar Deadlift",sub2:"Barbell Hip Thrust",notes:"Brace your lats, chest tall, pull the slack out of the bar before lifting"},
+      {name:"Stiff-Leg Deadlift",warmup:"0",working:[2,2,2,2,2,2],reps:["8","8","8","8","8","8"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~3-4 min",sub1:"Barbell RDL",sub2:"DB RDL",notes:"High-hip conventional deadlift with a slight bend in the knees"},
+      {name:"Close-Grip Barbell Incline Press",warmup:"2-3",working:[3,3,3,3,3,2],reps:["8/5/12","8/5/12","8/5/12","8/5/12","8/5/12","8/5"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~3-4 min",sub1:"Close-Grip DB Incline Press",sub2:"Close-Grip Machine Press",notes:"~45° incline, grip width just outside shoulder width"},
+      {name:"Chin-Up",warmup:"2",working:[2,2,2,2,2,2],reps:["8-10","8-10","8-10","8-10","8-10","8-10"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~2-3 min",sub1:"Underhand Lat Pulldown",sub2:"Pull-Up",notes:"Underhand grip, pull your chest to the bar, add weight if needed to hit RPE"},
+      {name:"Leg Press",warmup:"2-3",working:[3,3,3,3,3,2],reps:["10-12","10-12","10-12","10-12","10-12","10-12"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~2-3 min",sub1:"Goblet Squat",sub2:"Walking Lunge",notes:"Medium width feet on platform, don't allow your lower back to round"},
+      {name:"Kroc Row",warmup:"2",working:[2,2,2,2,2,2],reps:["10-12","10-12","10-12","10-12","10-12","10-12"],rpe:["8-9","8-9","8-9","8-9","8-9","7"],rest:"~2-3 min",sub1:"Single-Arm DB Row",sub2:"Meadows Row",notes:"DB row with mild cheating and slightly more upright posture. Go heavy, use straps."},
+      {name:"Diamond Pushup",warmup:"0",working:[1,1,1,1,1,1],reps:["AMRAP","AMRAP","AMRAP","AMRAP","AMRAP","AMRAP"],rpe:["10","10","10","10","10","10"],rest:"0 min",sub1:"Close-Grip Push Up",sub2:"Kneeling Modified Push Up",notes:"Hands close together forming a diamond shape, smooth tempo to failure"},
+    ]
+  }},
+  {id:2,name:"Phase 2",subtitle:"Maximum Effort",numWeeks:4,
+   weekLabels:["Week 1","Week 2","Week 3","Week 4"],
+   sessionOrder:["Legs #1","Push #1","Pull #1","Full Body #1"],
+   sessions:{
+    "Legs #1":[
+      {name:"Squat / Machine Squat",warmup:"3-4",working:R(1,4),reps:R("3-5",4),rpe:R("8-9",4),rest:"~3-5 min",sub1:"Machine Squat",sub2:"Bulgarian Split Squat",notes:"Sit back and down, keep your upper back tight to the bar"},
+      {name:"Barbell RDL",warmup:"3",working:R(2,4),reps:R("4-6",4),rpe:R("10",4),rest:"~3-4 min",sub1:"DB RDL",sub2:"45° Hyperextension",notes:"Neutral lower back, hips back, don't allow your spine to round"},
+      {name:"Leg Extension",warmup:"2",working:R(2,4),reps:R("6-8",4),rpe:R("10",4),rest:"~2-3 min",sub1:"DB Step-Up",sub2:"Goblet Squat",notes:"Focus on squeezing your quads to make the weight move"},
+      {name:"Seated Calf Raise",warmup:"2",working:R(3,4),reps:R("4-6",4),rpe:R("10",4),rest:"~2-3 min",sub1:"Standing Calf Raise",sub2:"Leg Press Toe Press",notes:"Press all the way to your toes, stretch your calves at the bottom, don't bounce"},
+      {name:"Cable Crunch",warmup:"2",working:R(3,4),reps:R("6-8",4),rpe:R("10",4),rest:"~2-3 min",sub1:"Plate-Weighted Crunch",sub2:"Machine Crunch",notes:"Round your back as you crunch"},
+    ],
+    "Push #1":[
+      {name:"Bench Press",warmup:"3-4",working:R(1,4),reps:R("3-5",4),rpe:R("8-9",4),rest:"~3-5 min",sub1:"DB Bench Press",sub2:"Machine Chest Press",notes:"Comfortable arch, quick pause on the chest and explode up"},
+      {name:"High-Incline Smith Machine Press",warmup:"2",working:R(2,4),reps:R("4-6",4),rpe:R("10",4),rest:"~3-4 min",sub1:"Incline DB Press",sub2:"Incline Machine Press",notes:"45-60° incline, touch the bar to your upper chest with control"},
+      {name:"Egyptian Cable Lateral Raise",warmup:"2",working:R(2,4),reps:R("6-8",4),rpe:R("10",4),rest:"~2-3 min",sub1:"DB Lateral Raise",sub2:"Machine Lateral Raise",notes:"Lean away from the cable. Focus on squeezing your delts."},
+      {name:"Overhead Cable Triceps Extension",warmup:"2",working:R(2,4),reps:R("4-6",4),rpe:R("10",4),rest:"~2-3 min",sub1:"DB Floor Skull Crusher",sub2:"DB French Press",notes:"Both arms at once, resist the negative"},
+      {name:"Cable Triceps Kickback",warmup:"1",working:R(2,4),reps:R("6-8",4),rpe:R("10",4),rest:"~2-3 min",sub1:"DB Triceps Kickback",sub2:"Triceps Pressdown",notes:"Lean slightly forward, lock your elbow behind your torso"},
+    ],
+    "Pull #1":[
+      {name:"Neutral-Grip Lat Pulldown",warmup:"3",working:R(3,4),reps:R("4-6",4),rpe:R("10",4),rest:"~3-4 min",sub1:"Neutral-Grip Pull-Up",sub2:"Machine Pulldown",notes:"Pull your elbows down against your sides"},
+      {name:"Pendlay Row",warmup:"3",working:R(2,4),reps:R("4-6",4),rpe:R("10",4),rest:"~3-4 min",sub1:"Meadows Row",sub2:"Single-Arm Row",notes:"Initiate by squeezing shoulder blades together, pull to lower chest, avoid momentum"},
+      {name:"Reverse Pec Deck",warmup:"2",working:R(2,4),reps:R("6-8",4),rpe:R("10",4),rest:"~2-3 min",sub1:"Reverse Cable Flye",sub2:"Bent-Over Reverse DB Flye",notes:'Swing the weight "out", not "back"'},
+      {name:"EZ-Bar Curl",warmup:"2",working:R(2,4),reps:R("4-6",4),rpe:R("10",4),rest:"~2-3 min",sub1:"DB Curl",sub2:"Cable Curl",notes:'Arc the bar "out" not "up", focus on squeezing your biceps'},
+      {name:"Hammer Cheat Curl",warmup:"1",working:R(1,4),reps:R("4-6",4),rpe:R("10",4),rest:"0 min",sub1:"Inverse Zottman Curl",sub2:"DB Curl",notes:"Slight momentum on the concentric, control the eccentric with elbows stationary"},
+    ],
+    "Full Body #1":[
+      {name:"Hack Squat (W1,3) / Deadlift (W2,4)",warmup:"3-4",working:R(2,4),reps:R("4-6",4),rpe:["9-10","8-9","9-10","8-9"],rest:"~3-5 min",sub1:"Machine Squat / Trap Bar Deadlift",sub2:"Bulgarian Split Squat / Barbell Hip Thrust",notes:"W1&3: Hack Squat — knees forward, quad focus. W2&4: Deadlift — brace lats, chest tall."},
+      {name:"Seated DB Shoulder Press",warmup:"3",working:R(2,4),reps:R("6-8",4),rpe:R("10",4),rest:"~3-4 min",sub1:"Machine Shoulder Press",sub2:"Standing DB Arnold Press",notes:"Bring dumbbells all the way down, keep torso upright"},
+      {name:"Close-Grip Seated Cable Row",warmup:"3",working:R(2,4),reps:R("4-6",4),rpe:R("10",4),rest:"~3-4 min",sub1:"T-Bar Row",sub2:"Incline Chest-Supported DB Row",notes:"Squeeze shoulder blades together, drive elbows down and back"},
+      {name:"Weighted Dip",warmup:"3",working:R(2,4),reps:R("4-6",4),rpe:R("10",4),rest:"~3-4 min",sub1:"Machine Chest Press",sub2:"DB Bench Press",notes:"Elbows at 45°, torso forward 15°, shoulder-width or slightly wider grip"},
+      {name:"Seated Leg Curl",warmup:"2",working:R(2,4),reps:R("4-6",4),rpe:R("10",4),rest:"~2-3 min",sub1:"Lying Leg Curl",sub2:"Nordic Ham Curl",notes:"Focus on squeezing your hamstrings to move the weight"},
+      {name:"Machine Lateral Raise",warmup:"2",working:R(2,4),reps:R("6-8",4),rpe:R("10",4),rest:"~2-3 min",sub1:"DB Lateral Raise",sub2:"Cable Lateral Raise",notes:"Focus on squeezing your lateral delt to move the weight"},
+    ]
+  }},
+  {id:3,name:"Phase 3",subtitle:"Supercompensation",numWeeks:3,
+   weekLabels:["Week 1","Week 2","Week 3 — Full Deload"],
+   sessionOrder:["Legs #1","Push #1","Pull #1","Full Body #1"],
+   sessions:{
+    "Legs #1":[
+      {name:"Front Squat",warmup:"2-3",working:[3,3,2],reps:["15","15","10"],rpe:["7-8","7-8","6"],rest:"~2-3 min",sub1:"High-Bar Box Squat",sub2:"Goblet Squat",notes:"Be humble with your weight, focus on keeping your torso upright. Don't miss reps."},
+      {name:"Dumbbell RDL",warmup:"1",working:[3,3,2],reps:["20","20","12"],rpe:["9","9","6"],rest:"~2-3 min",sub1:"Barbell RDL",sub2:"45° Hyperextension",notes:"Emphasize the stretch in your hamstrings, prevent your lower back from rounding"},
+      {name:"Walking Lunge",warmup:"1",working:[3,3,2],reps:["10","10","8"],rpe:["9","9","6"],rest:"~2-3 min",sub1:"DB Step-Up",sub2:"Goblet Squat",notes:"Medium strides, minimize the amount you push off your rear leg"},
+      {name:"Slow Seated Leg Curl (3s up, 3s down)",warmup:"1",working:[3,3,2],reps:["8","8","8"],rpe:["10","10","7"],rest:"~1-2 min",sub1:"Lying Leg Curl",sub2:"Nordic Ham Curl",notes:"Slow tempo — 3 seconds up and 3 seconds down"},
+      {name:"Leg Press Toe Press",warmup:"1",working:[3,3,2],reps:["20","20","12"],rpe:["10","10","7"],rest:"~1-2 min",sub1:"Seated Calf Raise",sub2:"Standing Calf Raise",notes:"Press all the way to your toes, stretch calves at the bottom, don't bounce"},
+      {name:"LLPT Plank",warmup:"0",working:[3,3,1],reps:["20 sec","20 sec","30s"],rpe:["10","10","7"],rest:"~1-2 min",sub1:"Ab Wheel Rollout",sub2:"Plank",notes:"Contract your glutes and position elbows under your eyes to make it harder"},
+    ],
+    "Push #1":[
+      {name:"Low Incline DB Press",warmup:"2",working:[3,3,2],reps:["20","20","12"],rpe:["9","9","6"],rest:"~2-3 min",sub1:"Low Incline Machine Press",sub2:"Low Incline Smith Machine Press",notes:"15° incline, tuck elbows on the negative, flare as you press"},
+      {name:"Machine Shoulder Press",warmup:"2",working:[3,3,2],reps:["15","15","12"],rpe:["9","9","6"],rest:"~2-3 min",sub1:"DB Shoulder Press",sub2:"Standing DB Arnold Press",notes:"Don't stop between reps, keep smooth and controlled tension on the delts"},
+      {name:"Cable Crossover Ladder",warmup:"1",working:[3,3,2],reps:["20","20","15"],rpe:["10","10","7"],rest:"~1-2 min",sub1:"Flat-To-Incline DB Flye",sub2:"Pec Deck",notes:"Set 1: low cable. Set 2: mid-height. Set 3: high cable position."},
+      {name:"A1: Lean-In Constant Tension DB Lateral Raise",warmup:"1",working:[3,3,2],reps:["15","15","12"],rpe:["10","10","7"],rest:"0 min (superset →)",sub1:"Constant-Tension Cable Lateral Raise",sub2:"Constant-Tension Machine Lateral Raise",notes:"Lean into a bench, do lateral raises. Keep tension — don't rest arm against your side."},
+      {name:"A2: Side Delt Static Stretch",warmup:"0",working:[3,3,2],reps:["30s HOLD","30s HOLD","30s HOLD"],rpe:["N/A","N/A","N/A"],rest:"~1-2 min",sub1:"—",sub2:"—",notes:"Hold a side delt stretch for 30 seconds at about 7/10 intensity"},
+      {name:"Overhead Triceps Extension",warmup:"1",working:[3,3,2],reps:["20","20","15"],rpe:["10","10","7"],rest:"~1-2 min",sub1:"DB Floor Skull Crusher",sub2:"DB French Press",notes:"Both arms at once, resist the negative"},
+      {name:"Med-Ball Close Grip Push Up",warmup:"0",working:[1,1,1],reps:["AMRAP","AMRAP","AMRAP"],rpe:["10","10","7"],rest:"0 min",sub1:"Close-Grip Push Up",sub2:"Kneeling Modified Push Up",notes:"Hands on a medicine ball, smooth controlled pushups"},
+    ],
+    "Pull #1":[
+      {name:"1-Arm Half Kneeling Lat Pulldown",warmup:"1",working:[2,2,2],reps:["20","20","12"],rpe:["9","9","6"],rest:"~1-2 min",sub1:"1-Arm Lat Pull-In",sub2:"Cable Lat Pullover",notes:"Chest tall, elbow tucked close to torso, squeeze your lat to move the weight"},
+      {name:"Omni-Grip Lat Pulldown",warmup:"1",working:[3,3,3],reps:["20","20","12"],rpe:["9","9","6"],rest:"~2-3 min",sub1:"Omni-Grip Pull-Up",sub2:"Chin-Up",notes:"Set 1: wide overhand. Set 2: middle overhand. Set 3: close underhand."},
+      {name:"Machine Low Row",warmup:"2",working:[4,4,2],reps:["20","20","12"],rpe:["9","9","6"],rest:"~2-3 min",sub1:"Helms Row",sub2:"Incline Chest-Supported DB Row",notes:"Focus on squeezing your shoulder blades together on each rep"},
+      {name:"Cable Shrug-In",warmup:"1",working:[3,3,2],reps:["20","20","12"],rpe:["10","10","7"],rest:"~1-2 min",sub1:"DB Shrug",sub2:"Plate Shrug",notes:"Two cable handles low, shrug up and in. Squeeze upper traps to move the weight."},
+      {name:"Reverse Pec Deck",warmup:"1",working:[3,3,2],reps:["20","20","12"],rpe:["10","10","7"],rest:"~1-2 min",sub1:"Reverse Cable Flye",sub2:"Bent-Over Reverse DB Flye",notes:'Swing the weight "out", not "back"'},
+      {name:"EZ-Bar Curl (Heavy)",warmup:"2",working:[1,1,1],reps:["4-6","4-6","4-6"],rpe:["9","9","7"],rest:"~1-2 min",sub1:"DB Curl",sub2:"Cable Curl",notes:'Arc the bar "out" not "up", focus on squeezing your biceps'},
+      {name:"A1: EZ-Bar Modified Bicep 21's",warmup:"0",working:[2,2,1],reps:["21","21","21"],rpe:["10","10","7"],rest:"0 min (superset →)",sub1:"DB Curl 21's",sub2:"Cable Curl 21's",notes:"7 reps seated, 7 reps standing full ROM, 7 reps bottom-half curls"},
+      {name:"A2: Bicep Static Stretch",warmup:"0",working:[2,2,1],reps:["30s HOLD","30s HOLD","30s HOLD"],rpe:["N/A","N/A","N/A"],rest:"~1-2 min",sub1:"—",sub2:"—",notes:"Hold a bicep stretch for 30 seconds at about 7/10 intensity"},
+    ],
+    "Full Body #1":[
+      {name:"Deadlift",warmup:"3-4",working:[2,2,1],reps:["8","8","8"],rpe:["9","9","6"],rest:"~3-4 min",sub1:"Trap Bar Deadlift",sub2:"Barbell Hip Thrust",notes:"Brace your lats, chest tall, pull the slack out of the bar before lifting"},
+      {name:"Bench Press (Top Set)",warmup:"3-4",working:[1,1,1],reps:["2-4","2-4","2-4"],rpe:["8-9","8-9","6"],rest:"~3-4 min",sub1:"DB Bench Press",sub2:"Machine Chest Press",notes:"Comfortable arch, pause on chest, explode up"},
+      {name:"Bench Press (Back Off AMRAP)",warmup:"0",working:[1,1,1],reps:["AMRAP","AMRAP","AMRAP"],rpe:["10","10","—"],rest:"~3-4 min",sub1:"DB Bench Press",sub2:"Machine Chest Press",notes:"Use ~60% of your top set weight. Aim for 10-20+ reps. Use a spotter and safety bars!"},
+      {name:"Pull-Up (Cluster Sets)",warmup:"2",working:[6,6,4],reps:["3 × 6 clusters","3 × 6 clusters","3 × 4 clusters"],rpe:["7-8","7-8","6"],rest:"15 sec between clusters",sub1:"Lat Pulldown",sub2:"Machine Pulldown",notes:"6 cluster sets: 3 reps, rest 15 seconds, repeat. Keep form smooth."},
+      {name:"Leg Press",warmup:"2-3",working:[2,2,1],reps:["20","20","12"],rpe:["9","9","6"],rest:"~2-3 min",sub1:"Goblet Squat",sub2:"Walking Lunge",notes:"Medium width feet on platform, don't allow your lower back to round"},
+      {name:"Wide-Grip Cable Row (Cluster Sets)",warmup:"2",working:[10,10,6],reps:["3 × 10 clusters","3 × 10 clusters","3 × 6 clusters"],rpe:["7-8","7-8","6"],rest:"15 sec between clusters",sub1:"Wide-Grip Machine Row",sub2:"Wide-Grip T-Bar Row",notes:"10 cluster sets: 3 reps, rest 15 seconds, repeat. Keep form tight."},
+      {name:"Standing DB Arnold Press",warmup:"2",working:[3,3,2],reps:["15","15","12"],rpe:["9","9","6"],rest:"~2-3 min",sub1:"Seated DB Shoulder Press",sub2:"Machine Shoulder Press",notes:"Elbows in front, palms facing in. Rotate so palms face forward as you press."},
+    ]
+  }}
+]};
+
+// ═══════════════════════════════════════════════════════════
+// STORAGE — localStorage is primary, Sheets is backup/view
+// ═══════════════════════════════════════════════════════════
+const sKey = (p,w,s) => `P${p+1}W${w+1}_${s.replace(/\s+/g,'_').replace(/[^a-z0-9_]/gi,'')}`;
+
+// ─── JEFF'S NOTES ────────────────────────────────────────
+const PHASE_NOTES = [
+  "Moderate volume, moderate-high intensity. Push compounds to RPE 8-9 (1-2 reps left in the tank). Push isolation work to RPE 9-10. Goal is to lay a foundation of hypertrophy. Progress by adding reps each week until you hit the top of the rep range, then add a small amount of weight and start back at the bottom of the range.",
+  "Low volume, maximum effort. Almost every working set goes to RPE 10 — true failure. You don't need to literally dump the weight, but you should not be able to complete another rep with good technique. Squat and bench don't go to absolute max to protect recovery. If you hit the top of the rep range (e.g. 6 reps on a 4-6 set), add weight next session.",
+  "Ultra-high volume, moderate intensity. Very high reps (15-20 on most sets). Sets are taken very close to failure — don't stop too early or you'll understimulate the muscle even if the pump is incredible. Use the failure experience you built in Phase 2 here. This sudden spike in volume is what drives the supercompensation response."
+];
+
+const JEFF_NOTES = {
+  // ── Phase 1 & shared ───────────────────────────────────
+  "Squat": "Sit back and down — not straight down. Keep your upper back tight to the bar throughout. Use autoregulation: if the bar speed feels slow, stay at the prescribed weight rather than pushing heavier. The single heavy set per week is intentional — enough to drive strength without overtaxing recovery for the rest of the workout.",
+  "Pause Squat (Back off)": "Drop the weight ~25% from your top set. The 2-second pause at the bottom eliminates the stretch-shortening reflex and forces your muscles to generate force from a dead stop — it builds raw strength out of the hole. Keep your upper back tight throughout the pause.",
+  "Barbell RDL": "This is a hip hinge — push your hips back, not down. The bar should travel close to your legs the entire time. Stop when your lower back starts to round, not necessarily when the weight reaches the floor. You should feel a strong stretch in your hamstrings at the bottom of each rep.",
+  "Dumbbell RDL": "Dumbbells allow a greater ROM than a barbell since they can travel past your feet. Take advantage of this — get a deeper stretch in the hamstrings than you could with a bar. Same principle: hips back, neutral spine, feel the hamstring stretch.",
+  "Walking Lunge": "Take medium strides — not too short (creates knee stress) and not too long (reduces quad tension). Keep your torso upright and minimize the push-off from your rear leg. You should feel this loading your quads and glutes, not your hip flexors.",
+  "Seated Leg Curl": "Initiate the movement by squeezing your hamstrings — don't just move the weight with momentum. The hamstrings flex the knee and extend the hip; on the leg curl you're isolating the knee flexion function. Control the eccentric (the lowering) on every rep.",
+  "Leg Press Toe Press": "Press all the way up to your toes — full plantar flexion at the top. Get a complete stretch at the bottom by letting the heel drop. No bouncing. The calves respond extremely well to full ROM and high reps.",
+  "Seated Calf Raise": "The seated position (knee bent at ~90°) shortens the gastrocnemius so it can't contribute as much force, which better isolates the soleus. Full ROM — all the way up and all the way down with a pause at the stretch.",
+  "Decline Plate-Weighted Crunch": "The key is spinal flexion — actively round your back as you crunch. Think about pulling your ribs toward your hips, not just bringing your chest toward your knees. The plate or DB increases the load and makes this a proper strength exercise for the abs.",
+  "Cable Crunch": "Same as the decline crunch — focus on rounding your spine, not just hinging at the hips. The cable provides constant tension throughout the ROM. Round your back as you crunch.",
+  "Bench Press": "Set your shoulder blades back and down before you unrack — this is your base of support. Quick pause on the chest and explode up on every rep. In Phase 3, your top set is immediately followed by a back-off AMRAP at 60% — use safety bars.",
+  "Bench Press (Top Set)": "Set your shoulder blades back and down before you unrack. Quick pause on the chest — no bounce — and explode up on each rep.",
+  "Bench Press (Back Off AMRAP)": "Use ~60% of your top set weight and do as many reps as possible. Target is 10-20+ reps. This is not a light pump set — push it to failure. Use a spotter and safety bars. This AMRAP is a primary hypertrophy driver in Phase 3.",
+  "Larsen Press": "A bench press with your feet raised and zero leg drive. This removes the contribution of your legs and lower back and isolates the upper body completely. Shoulder blades still retracted and depressed. Maintain a slight arch in your upper back.",
+  "Standing DB Arnold Press": "Start with your elbows in front of you and palms facing toward you. As you press, rotate the dumbbells so your palms face forward at the top. This rotation allows a greater ROM than a standard press and hits more of the front and lateral delt throughout the movement.",
+  "A1. Press-Around": "A cable crossover where you press the cable across your body. Brace your non-working arm against a stable surface. Squeeze your pec as hard as possible at the end range. Do not rest between this and the Pec Static Stretch — move straight into the stretch.",
+  "A2. Pec Static Stretch": "Research suggests combining training with targeted stretching may enhance hypertrophy in the stretched position. Hold at ~7/10 intensity — uncomfortable but not painful. This follows immediately after the Press-Around as a superset.",
+  "Cross-Body Cable Y-Raise (Side Delt)": "Think about drawing a sword from your hip — the cable travels out and up at a diagonal. This angle applies more tension to the lateral delt throughout the ROM compared to a straight lateral raise.",
+  "Squeeze-Only Tri Pressdown + OHT Ext": "This is a mechanical dropset — you do the bottom half of the pressdown ROM (the squeeze/contracted position) for 8 reps, then immediately transition to overhead extensions and do the top half of the ROM (the stretched position) for 8 reps. You're hitting both ends of the tricep's range without extra sets.",
+  "N1-Style Cross-Body Triceps Extension": "Extend your tricep with your arm angled out to the side rather than straight down. As the cable travels across your torso on the eccentric, you should feel a deep stretch in the tricep. This stretch-focused ROM is the point of the exercise.",
+  "Lat Pulldown (Feeder Sets)": "Feeder sets were popularized by John Meadows. You're progressively building the weight across 4 sets to fully activate the muscle before the hard set. Set 1: RPE 4-5. Set 2: RPE 6-7. Set 3: RPE 7-8. Set 4: push to failure at 10 reps. Each set should feel noticeably harder than the last.",
+  "Lat Pulldown (Failure Set + Dropset)": "After hitting failure at ~10 reps, immediately strip the weight 30-50% and do 5 more controlled reps. The dropset extends the set past failure and adds more hypertrophic stimulus without extra rest time.",
+  "Omni-Grip Machine Chest-Supported Row": "Using 3 different grips across 3 sets targets slightly different portions of the back. Wider grips emphasize upper back and rear delts. Closer grips emphasize the mid-lats. Going from wider to closer across the 3 sets works well.",
+  "A1. Bottom-Half DB Lat Pullover": "Based on 2021-2022 research showing partial reps in the stretched position are highly effective for muscle growth. You stay entirely in the bottom half of the ROM — the fully stretched position — where the lat is under maximum tension. Do not complete the top half of the rep.",
+  "A2. Lat Static Stretch": "Holds a lat stretch for 30 seconds immediately after the pullover. 7/10 intensity. This stretch-and-train pairing may enhance hypertrophy in the lats according to recent research.",
+  "Omni-Direction Face Pull": "Changing the cable height each set targets different angles of the rear delt and upper back. Low-to-high (1st set) biases lower traps. Mid-range (2nd set) is balanced. High-to-low (3rd set) biases upper traps. Don't shortchange any of the three positions.",
+  "EZ-Bar Curl": "Arc the bar out and away from your body rather than pulling straight up. This follows the natural line of pull for the biceps. Minimize torso momentum — the curl should be driven by bicep contraction, not swinging.",
+  "EZ-Bar Curl (Heavy)": "In Phase 3, this is a single heavy set at 4-6 reps before moving into the high-rep 21s. Arc the bar out, squeeze the biceps, keep momentum minimal.",
+  "Bottom-Half Preacher Curl": "Same principle as the lat pullover — you stay in the bottom half of the ROM which is the stretched position for the bicep. Research supports that stretch-focused partial reps may match or exceed full ROM training for hypertrophy. Do not complete the top half of the curl.",
+  "Deadlift": "Brace your lats against the bar before pulling — think 'protect your armpits'. Pull the slack out of the bar before you actually lift off the floor. In Phase 2, conventional or sumo both work — go with whichever you're stronger at.",
+  "Stiff-Leg Deadlift": "Think of this as a high-hip conventional deadlift — hips are higher than a normal deadlift, knees stay slightly bent (not locked). The bar returns to the floor on each rep. This targets the hamstrings more than a Romanian deadlift since you reset from the floor.",
+  "Close-Grip Barbell Incline Press": "The ~45° incline shifts the emphasis to the upper chest. The close grip (just outside shoulder width) adds significant tricep involvement. The 8/5/12 rep scheme is prescribed — set 1 is 8 reps, set 2 goes heavier for 5, set 3 is a lighter back-off for 12.",
+  "Chin-Up": "Underhand grip recruits more bicep than a pronated pull-up, making it a good choice on the full body day where biceps aren't otherwise directly trained. Pull your chest to the bar — don't stop when your chin clears. Add weight with a belt if bodyweight is easy.",
+  "Leg Press": "Medium foot width and height on the platform. Don't allow your lower back to round at the bottom — keep your butt in contact with the pad. In Phase 3, the 20-rep sets will challenge your conditioning as much as your muscle.",
+  "Kroc Row": "A dumbbell row with mild cheating and a slightly more upright torso than a strict row. Don't be afraid to go heavy and use straps — grip should never be the limiting factor. Use slight momentum on the concentric, but control the eccentric. Named after powerlifter Matt Kroczaleski.",
+  "Diamond Pushup": "Hands close together forming a diamond shape directly under your chest. This shifts emphasis onto the triceps. Do as many reps as possible with a smooth, controlled tempo. The session finisher — grind it out.",
+  // ── Phase 2 specific ───────────────────────────────────
+  "Squat / Machine Squat": "Phase 2 squat is still 1 top set per week — the same minimalist strength approach as Phase 1 but now everything else in the session is pushed to RPE 10. The squat stays at RPE 8-9 to protect recovery for the rest of the workout.",
+  "Leg Extension": "Squeeze your quads to make the weight move — don't just kick your leg up. The leg extension isolates the quad by removing the hip flexor contribution. Control the eccentric. In Phase 2, this goes to RPE 10 — true failure.",
+  "High-Incline Smith Machine Press": "Set the bench at 45-60° — much higher than a standard incline. This angle shifts emphasis to the upper chest and front delt. Touch the bar to your upper chest with control. The Smith machine makes it easier to go to true failure safely.",
+  "Egyptian Cable Lateral Raise": "Lean away from the cable stack with your free hand holding the top of the stack for support. This lean creates a longer moment arm on the lateral delt and allows for a better stretch at the bottom of the movement.",
+  "Overhead Cable Triceps Extension": "The overhead position puts the long head of the tricep in a fully stretched position — this stretch-focused training is a key hypertrophy driver. Both arms work simultaneously. Resist the negative with full control.",
+  "Cable Triceps Kickback": "Lean your torso forward and lock your elbow behind your torso — shoulder hyperextension positions the tricep for full contraction. Don't let the elbow move; all motion comes from the elbow joint only.",
+  "Neutral-Grip Lat Pulldown": "Neutral grip (palms facing each other) allows most people to pull more weight than a wide overhand grip, making it well suited for Phase 2's heavy approach. Pull your elbows straight down against your sides.",
+  "Pendlay Row": "Unlike a barbell row, each rep resets to the floor — eliminating all momentum. This strict start builds honest back strength. Initiate by squeezing your shoulder blades together, then pull explosively to your lower chest.",
+  "Reverse Pec Deck": "Swing the weight OUT to the sides — not back behind you. If you feel it in your traps instead of your rear delts, you're pulling back. Keep a slight bend in the elbows and control the return to avoid shoulder impingement.",
+  "Hammer Cheat Curl": "Slight momentum on the concentric is allowed and intentional — this is the 'acceptable cheating' Jeff references in the program. However, control the eccentric strictly with your elbows stationary. You can use slightly more weight than a strict curl.",
+  "Hack Squat (W1,3) / Deadlift (W2,4)": "The Full Body session alternates each week in Phase 2. Weeks 1 & 3 use Hack Squat to emphasize quads (go to RPE 9-10). Weeks 2 & 4 use Deadlift (RPE 8-9 to protect recovery). Both go to near-failure.",
+  "Hack Squat": "Allow your knees to travel forward past your toes — this is correct technique on a hack squat. The more vertical torso compared to a barbell squat creates more direct quad loading. Keep your back flat against the pad.",
+  "Seated DB Shoulder Press": "Bring the dumbbells all the way down to shoulder height or below — full ROM. Keep your torso upright rather than arching aggressively. In Phase 2, this goes to RPE 10 (true failure) every set.",
+  "Close-Grip Seated Cable Row": "Focus on retracting your shoulder blades — squeeze them together hard at the end range. Drive your elbows down and back, not just back. Keep the torso relatively upright; don't lean back excessively.",
+  "Weighted Dip": "Tuck your elbows at 45 degrees — not flared wide, not pinned straight in. Lean your torso forward ~15 degrees. Shoulder-width or slightly wider grip. This combination maximizes pec activation while protecting the shoulder.",
+  "Machine Lateral Raise": "Focus on squeezing the lateral delt to raise the weight — not momentum, not traps. The machine provides consistent resistance throughout the ROM unlike a dumbbell, which gets heavier as the angle increases.",
+  // ── Phase 3 specific ───────────────────────────────────
+  "Front Squat": "Phase 3 swaps back squats for front squats to challenge the quads differently with a more upright torso. The high rep target (15) means you need to be humble with the weight. Don't go so heavy that you miss reps — consistency across all reps matters more than peak load.",
+  "Slow Seated Leg Curl (3s up, 3s down)": "The slow tempo is the entire point — 3 seconds on the way up, 3 seconds on the way down. This creates extended time under tension and will be humbling with the load you use. Don't rush the tempo.",
+  "LLPT Plank": "LLPT stands for Legs, Lats, Pelvis, Tension. Squeeze your glutes, engage your lats by thinking about pulling your elbows toward your feet, tuck your pelvis slightly, and brace your entire midsection. This turns a standard plank into a full-body tension exercise.",
+  "Low Incline DB Press": "Only 15 degrees of incline — much lower than standard incline press. This targets the upper chest while keeping shoulder stress low. Tuck your elbows slightly on the eccentric (lowering), then flare them as you press.",
+  "Machine Shoulder Press": "Keep smooth, continuous tension on the delts — don't lock out at the top or let the weight rest at the bottom between reps. Phase 3's 15-rep sets at RPE 9 will create a significant pump.",
+  "Cable Crossover Ladder": "Three sets at three different cable heights. Low position (press upward): lower pec. Mid height: mid pec. High position (press downward): upper pec. Each position emphasizes a slightly different part of the chest.",
+  "A1: Lean-In Constant Tension DB Lateral Raise": "Lean your non-working side against a bench for support. As you lower the dumbbell, don't let it rest against your thigh — maintain constant tension on the lateral delt at the bottom. The lean and constant tension are what make this different from a standard lateral raise.",
+  "A2: Side Delt Static Stretch": "Holds a side delt stretch for 30 seconds immediately after the lateral raise. 7/10 intensity. Same stretch-and-train pairing principle as the lat and pec stretches — may enhance hypertrophy in the stretched position.",
+  "Overhead Triceps Extension": "Overhead position places the long head of the tricep in a fully stretched position. Both arms work simultaneously. Resist the negative (eccentric) with full control. In Phase 3, 20 reps — the pump will be intense.",
+  "Med-Ball Close Grip Push Up": "Place your hands on the medicine ball to create a narrow, elevated base. The instability of the ball increases difficulty and core activation. The narrow hand position targets the triceps more than a standard push-up. Push to AMRAP.",
+  "1-Arm Half Kneeling Lat Pulldown": "Half-kneeling creates a stable base and allows you to focus entirely on the lat. Keep your chest tall and your elbow close to your torso as you pull. Single-arm work allows each side to work independently — use this to address any left/right imbalances.",
+  "Omni-Grip Lat Pulldown": "Three different grips target slightly different lat fibers. Wide overhand: upper lat and rear delt emphasis. Middle overhand: balanced. Close underhand: more lower lat and bicep. Phase 3's 20-rep sets create a very strong lat pump.",
+  "Machine Low Row": "A low cable or machine angle targets the lower lat fibers and mid-back more than a high row. Focus on squeezing your shoulder blades together at the end of each rep. 4 sets of 20 reps — this is a lot of volume, pace yourself.",
+  "Cable Shrug-In": "Set up two cable handles low. The 'shrug-in' motion means you're shrugging up AND pulling the cables slightly toward each other. This creates a different feel than a straight barbell shrug and gives the upper traps a full stretch at the bottom.",
+  "A1: EZ-Bar Modified Bicep 21's": "7 reps seated (bottom-half ROM only), 7 reps standing full ROM, 7 reps standing bottom-half only. The 21s concept hits both the stretched and contracted portions of the bicep in one extended set. Don't rest between the three segments.",
+  "A2: Bicep Static Stretch": "Holds a bicep stretch for 30 seconds immediately after the 21s. 7/10 intensity. Same stretch-and-train pairing principle as the other static stretches in the program.",
+  "Pull-Up (Cluster Sets)": "Cluster sets: 3 reps, rest 15 seconds, repeat 6 times. The short rest means you accumulate 18 total reps with a demanding bodyweight movement while maintaining good form throughout. The brief pause lets you partially recover without fully discharging fatigue.",
+  "Wide-Grip Cable Row (Cluster Sets)": "10 cluster sets of 3 reps with 15 seconds rest. That's 30 total reps. Keep form tight throughout — the fatigue accumulation will make the later sets brutally hard. Wide grip emphasizes upper back and rear delts more than a narrow row.",
+  "Standing DB Arnold Press": "Start with elbows in front of you and palms facing toward you. Rotate the dumbbells as you press so your palms face forward at the top. The rotation allows greater ROM than a standard press and hits front and lateral delt through the movement.",
+};
+
+const DB = {
+  all:  ()    => JSON.parse(localStorage.getItem('ppl_v2') || '{}'),
+  get:  (k)   => DB.all()[k] || null,
+  set:  (k,v) => { const d=DB.all(); d[k]=v; localStorage.setItem('ppl_v2', JSON.stringify(d)); },
+  del:  (k)   => { const d=DB.all(); delete d[k]; localStorage.setItem('ppl_v2', JSON.stringify(d)); },
+  keys: ()    => Object.keys(DB.all()),
+};
+
+// ═══════════════════════════════════════════════════════════
+// AIRTABLE SYNC
+// ═══════════════════════════════════════════════════════════
+const AT = {
+  get token()   { return localStorage.getItem('ppl_at_token') || ''; },
+  set token(v)  { localStorage.setItem('ppl_at_token', v); },
+  get baseId()  { return localStorage.getItem('ppl_at_base') || ''; },
+  set baseId(v) { localStorage.setItem('ppl_at_base', v); },
+  get tableId() { return localStorage.getItem('ppl_at_table') || ''; },
+  set tableId(v){ localStorage.setItem('ppl_at_table', v); },
+  hdrs() { return { 'Authorization': `Bearer ${this.token}`, 'Content-Type': 'application/json' }; }
+};
+
+// Pre-fill credentials on first load
+if (!AT.token)   AT.token   = '';
+if (!AT.baseId)  AT.baseId  = 'appPG37ShuPzfT8Zc';
+if (!AT.tableId) AT.tableId = 'tbl9BrCS9BxHkllCg';
+
+// Fields we need in the table
+const REQUIRED_FIELDS = [
+  { name:'Date',        type:'date',            options:{ dateFormat:{ name:'iso' } } },
+  { name:'Phase',       type:'number',          options:{ precision:0 } },
+  { name:'Week',        type:'number',          options:{ precision:0 } },
+  { name:'Session',     type:'singleLineText' },
+  { name:'Exercise',    type:'singleLineText' },
+  { name:'Sub Used',    type:'singleLineText' },
+  { name:'Sets Logged', type:'singleLineText' },
+  { name:'My Note',     type:'singleLineText' },
+  { name:'Completed',   type:'checkbox',        options:{ color:'greenBright', icon:'check' } },
+];
+
+let _fieldsReady = false;
+async function ensureFields() {
+  if (_fieldsReady) return;
+  // Verify token works with a simple record read
+  const r = await fetch(
+    `https://api.airtable.com/v0/${AT.baseId}/${AT.tableId}?maxRecords=1`,
+    { headers: AT.hdrs() }
+  );
+  if (!r.ok) {
+    const txt = await r.text();
+    throw new Error(`Cannot reach table: ${txt}`);
+  }
+  _fieldsReady = true;
+}
+
+async function syncToAirtable(record) {
+  if (!AT.token) throw new Error('No Airtable token configured.');
+  await ensureFields();
+
+  const base = AT.baseId, tbl = AT.tableId;
+  const { phase, week, session } = record;
+
+  // Delete existing rows for this session
+  const formula  = encodeURIComponent(`AND({Phase}=${phase},{Week}=${week},{Session}="${session}")`);
+  const listR    = await fetch(`https://api.airtable.com/v0/${base}/${tbl}?filterByFormula=${formula}`, { headers: AT.hdrs() });
+  if (!listR.ok) { const e=await listR.json(); throw new Error(e.error?.message||`HTTP ${listR.status}`); }
+  const listData = await listR.json();
+  const ids      = (listData.records||[]).map(r=>r.id);
+  for (let i=0; i<ids.length; i+=10) {
+    const qs = ids.slice(i,i+10).map(id=>`records[]=${id}`).join('&');
+    const dr = await fetch(`https://api.airtable.com/v0/${base}/${tbl}?${qs}`, { method:'DELETE', headers:AT.hdrs() });
+    if (!dr.ok) { const e=await dr.json(); throw new Error(e.error?.message||`Delete failed`); }
+  }
+
+  // Build and insert new rows (one per exercise)
+  const rows = Object.entries(record.exercises||{}).map(([exName,exd])=>{
+    const sel  = exd.selectedSub||0;
+    const sub  = sel===1?(exd.sub1||exName):sel===2?(exd.sub2||exName):exName;
+    const sets = (exd.sets||[]).map((s,i)=>`#${i+1} ${s.weight||'—'}×${s.reps||'—'}${s.done?' ✓':''}`).join(', ');
+    return { fields:{
+      'Name':        `P${phase}W${week} ${session} — ${exName}`,
+      'Date':        record.date||'',
+      'Phase':       phase,
+      'Week':        week,
+      'Session':     session,
+      'Exercise':    exName,
+      'Sub Used':    sub,
+      'Sets Logged': sets,
+      'My Note':     exd.note||'',
+      'Completed':   !!record.completed
+    }};
+  });
+  for (let i=0; i<rows.length; i+=10) {
+    const pr = await fetch(`https://api.airtable.com/v0/${base}/${tbl}`, {
+      method:'POST', headers:AT.hdrs(),
+      body: JSON.stringify({ records: rows.slice(i,i+10) })
+    });
+    if (!pr.ok) { const e=await pr.json(); throw new Error(e.error?.message||`Insert failed`); }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let S = {
+  view: 'home',
+  phaseIdx: 0,
+  weekIdx:  0,
+  sessionKey: 'Legs #1',
+  exIdx: 0,
+  sessionKey_k: '',
+  wo: null,
+  prevScreen: 'home',
+};
+
+function saveNavState() {
+  localStorage.setItem('ppl_nav', JSON.stringify({
+    view: S.view, phaseIdx: S.phaseIdx, weekIdx: S.weekIdx,
+    sessionKey: S.sessionKey, exIdx: S.exIdx, sessionKey_k: S.sessionKey_k
+  }));
+}
+
+function restoreNavState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('ppl_nav') || 'null');
+    if (!saved) return false;
+    Object.assign(S, saved);
+    // Reload the workout data object if we were mid-session
+    if (S.sessionKey_k) {
+      const wo = DB.get(S.sessionKey_k);
+      if (wo && !wo.completed) { S.wo = wo; return true; }
+    }
+  } catch(e) {}
+  return false;
+}
+
+function getPhase()    { return PROGRAM.phases[S.phaseIdx]; }
+function getExercises(){ return getPhase().sessions[S.sessionKey] || []; }
+function getEx()       { return getExercises()[S.exIdx]; }
+
+// ═══════════════════════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════════════════════
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function tabNav(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab)?.classList.add('active');
+  if (tab==='home')     { showHome(); }
+  if (tab==='history')  { showHistory(); }
+  if (tab==='settings') { showSettings(); }
+}
+function updateTabBar(view) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const tabBar = document.getElementById('main-tab-bar');
+  if (view==='workout') { if(tabBar) tabBar.style.display='none'; }
+  else { if(tabBar) tabBar.style.display='flex'; document.getElementById('tab-'+view)?.classList.add('active'); }
+}
+function showHome()     { S.view='home';     saveNavState(); renderHome();     show('scr-home');     updateTabBar('home'); }
+function showWorkout()  { S.view='workout';  saveNavState(); renderWorkout();  show('scr-workout'); updateTabBar('workout'); }
+function showHistory()  { S.view='history';  saveNavState(); renderHistory();  show('scr-history'); updateTabBar('history'); }
+function showSettings() { S.view='settings'; renderSettings(); show('scr-settings'); }
+function goBack()       { showHistory(); }
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtSets(sets){ return sets.map((s,i)=>`#${i+1} ${s.weight||'—'}×${s.reps||'—'}`).join('  '); }
+
+function freshSets(ex, wIdx) {
+  return Array(ex.working[wIdx]).fill(null).map(()=>({weight:'',reps:'',done:false}));
+}
+
+// Get most recent log entry for an exercise across any session
+function getLastLog(exName) {
+  const all = DB.all();
+  const current = S.sessionKey_k;
+  const matches = Object.entries(all)
+    .filter(([k, rec]) => k !== current && rec.exercises?.[exName]?.sets?.some(s => s.done))
+    .sort((a, b) => (b[1].date||'').localeCompare(a[1].date||''));
+  if (!matches.length) return null;
+  return matches[0][1].exercises[exName];
+}
+
+// Get previous-week data for same exercise across same session type
+function getPrevPerf(exName) {
+  const phase = getPhase();
+  const results = [];
+  for (let w = S.weekIdx - 1; w >= 0; w--) {
+    const k = sKey(S.phaseIdx, w, S.sessionKey);
+    const rec = DB.get(k);
+    if (rec && rec.exercises && rec.exercises[exName]) {
+      const exData = rec.exercises[exName];
+      if (exData.sets && exData.sets.some(s=>s.done)) {
+        results.push({ week: w+1, date: rec.date, sets: exData.sets });
+        if (results.length >= 2) break;
+      }
+    }
+  }
+  return results;
+}
+
+function getNotes(exName) {
+  const all = DB.all();
+  const notes = [];
+  for (const [k, rec] of Object.entries(all)) {
+    if (rec.exercises && rec.exercises[exName] && rec.exercises[exName].note) {
+      notes.push({ date: rec.date, phase: rec.phase, week: rec.week, session: rec.session, text: rec.exercises[exName].note });
+    }
+  }
+  return notes.sort((a,b)=>b.date.localeCompare(a.date));
+}
+
+// ═══════════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════════
+function renderHome() {
+  const phase = getPhase();
+  let html = '';
+
+  // Resume in-progress workout banner
+  const allSessions = DB.all();
+  const inProgress = Object.entries(allSessions).find(([k,v]) => v && !v.completed);
+  if (inProgress) {
+    const [ipKey, ipRec] = inProgress;
+    html += `<div onclick="resumeWorkout('${esc(ipKey)}')" style="background:var(--ac);border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:.5px">▶ Resume Workout</div>
+        <div style="font-size:13px;opacity:.85;margin-top:2px">${esc(ipRec.session)} · P${ipRec.phase} W${ipRec.week}</div>
+      </div>
+      <div style="font-size:26px">→</div>
+    </div>`;
+  }
+
+  // Phase tabs
+  html += `<div style="margin-bottom:20px">
+    <div class="sec-lbl">Phase</div>
+    <div style="display:flex;gap:8px">`;
+  PROGRAM.phases.forEach((p,i)=>{
+    const active = i===S.phaseIdx ? 'active' : '';
+    html += `<button class="ph-btn ${active}" onclick="selPhase(${i})">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;line-height:1">${esc(p.name)}</div>
+      <div style="font-size:11px;margin-top:2px;opacity:.8">${esc(p.subtitle)}</div>
+    </button>`;
+  });
+  html += `</div></div>`;
+
+  // Week buttons
+  html += `<div style="margin-bottom:20px">
+    <div class="sec-lbl">Week</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">`;
+  phase.weekLabels.forEach((wl,i)=>{
+    const active = i===S.weekIdx ? 'active':'';
+    const deload = wl.includes('Deload');
+    html += `<button class="wk-btn ${active}" onclick="selWeek(${i})">
+      ${deload?'⚠ ':''}${esc(wl.replace(' — Semi-Deload','').replace(' — Full Deload',''))}
+      ${deload?`<span style="font-size:10px;color:var(--ac2);display:block;margin-top:1px">${wl.includes('Semi')?'Semi-Deload':'Full Deload'}</span>`:''}
+    </button>`;
+  });
+  html += `</div></div>`;
+
+  // Session cards
+  html += `<div class="sec-lbl">Sessions</div>
+    <div style="display:flex;flex-direction:column;gap:10px">`;
+
+  phase.sessionOrder.forEach(sk => {
+    const k = sKey(S.phaseIdx, S.weekIdx, sk);
+    const rec = DB.get(k);
+    const isDone = rec && rec.completed;
+    const exCount = (phase.sessions[sk]||[]).length;
+
+    if (isDone) {
+      const keyExercises = (phase.sessions[sk]||[]).slice(0,2).map(e=>{
+        const exd = rec.exercises[e.name];
+        if (exd && exd.sets && exd.sets.some(s=>s.done)) {
+          const filled = exd.sets.filter(s=>s.weight);
+          if (filled.length) return `${esc(e.name)}: ${filled.map(s=>s.weight+'lbs').join(' / ')}`;
+        }
+        return null;
+      }).filter(Boolean);
+
+      html += `<div class="session-card done-card" onclick="openDetail('${esc(k)}','${esc(sk)}')">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">${esc(sk)}</div>
+          <div style="font-size:12px;color:var(--gr);margin-top:2px">✓ Logged ${fmtDate(rec.date)} · ${calcDuration(S.phaseIdx, S.weekIdx, sk)}</div>
+          ${keyExercises.length ? `<div style="font-size:12px;color:var(--mu);margin-top:4px">${keyExercises.join('<br>')}</div>` : ''}
+        </div>
+        <div style="color:var(--mu);font-size:20px">›</div>
+      </div>`;
+    } else {
+      html += `<div class="session-card" onclick="startSession('${esc(sk)}')">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">${esc(sk)}</div>
+          <div style="font-size:12px;color:var(--mu);margin-top:2px">${exCount} exercises &nbsp;·&nbsp; ${calcDuration(S.phaseIdx, S.weekIdx, sk)}</div>
+        </div>
+        <div style="background:var(--ac);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:500">Start</div>
+      </div>`;
+    }
+  });
+
+  html += `</div>`;
+  document.getElementById('home-body').innerHTML = html;
+}
+
+function selPhase(i){ S.phaseIdx=i; S.weekIdx=0; S.sessionKey=PROGRAM.phases[i].sessionOrder[0]; renderHome(); }
+function selWeek(i) { S.weekIdx=i; renderHome(); }
+
+// ═══════════════════════════════════════════════════════════
+// SESSION DETAIL (read view of completed session)
+// ═══════════════════════════════════════════════════════════
+let detailKey = '';
+function openDetail(k, sk) {
+  detailKey = k;
+  const rec = DB.get(k);
+  if (!rec) return;
+  document.getElementById('det-title').textContent = sk;
+  document.getElementById('det-sub').textContent = `P${rec.phase} W${rec.week} · ${fmtDate(rec.date)}`;
+  document.getElementById('det-edit-btn').onclick = () => editSession(k, sk);
+
+  const phase = PROGRAM.phases[rec.phase-1];
+  const exList = phase.sessions[sk] || [];
+  let html = '';
+
+  exList.forEach(ex => {
+    const exd = rec.exercises[ex.name];
+    const sets = exd?.sets || [];
+    const note = exd?.note || '';
+    const subName = exd?.selectedSub===1 ? ex.sub1 : exd?.selectedSub===2 ? ex.sub2 : ex.name;
+    html += `<div class="card" style="margin-bottom:12px;padding:12px 14px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;text-transform:uppercase">${esc(subName)}</div>
+      ${subName!==ex.name?`<div style="font-size:11px;color:var(--ac2);margin-bottom:4px">↳ substitution</div>`:''}
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
+        ${sets.map((s,i)=>`<div style="background:var(--su2);border-radius:6px;padding:4px 10px;font-size:13px">
+          <span style="color:var(--mu);font-size:11px">#${i+1} </span>
+          <span style="color:var(--ac2)">${esc(s.weight||'—')}</span>${s.weight?'<span style="color:var(--mu)"> lbs</span>':''}
+          <span style="color:var(--mu)"> × </span>
+          <span>${esc(s.reps||'—')}</span>${s.reps?'<span style="color:var(--mu)"> reps</span>':''}
+          ${s.done?'<span style="color:var(--gr)"> ✓</span>':''}
+        </div>`).join('')}
+      </div>
+      ${note?`<div style="margin-top:8px;font-size:13px;color:#ccc;border-left:2px solid var(--br);padding-left:8px">${esc(note)}</div>`:''}
+    </div>`;
+  });
+
+  document.getElementById('det-body').innerHTML = html;
+  S.prevScreen = 'home';
+  show('scr-detail');
+}
+
+function editSession(k, sk) {
+  // Parse key back to phaseIdx/weekIdx
+  const rec = DB.get(k);
+  if (!rec) return;
+  S.phaseIdx  = rec.phase - 1;
+  S.weekIdx   = rec.week  - 1;
+  S.sessionKey = sk;
+  S.sessionKey_k = k;
+  // Load existing data
+  S.wo = JSON.parse(JSON.stringify(rec)); // deep clone
+  S.exIdx = 0;
+  showWorkout();
+}
+
+// ═══════════════════════════════════════════════════════════
+// WORKOUT — start fresh or edit
+// ═══════════════════════════════════════════════════════════
+function resumeWorkout(k) {
+  const rec = DB.get(k);
+  if (!rec) return;
+  S.phaseIdx    = rec.phase - 1;
+  S.weekIdx     = rec.week  - 1;
+  S.sessionKey  = rec.session;
+  S.sessionKey_k = k;
+  S.wo          = rec;
+  S.exIdx       = parseInt(localStorage.getItem('ppl_nav') ? JSON.parse(localStorage.getItem('ppl_nav')).exIdx : 0) || 0;
+  showWorkout();
+}
+
+function startSession(sk) {
+  S.sessionKey = sk;
+  S.sessionKey_k = sKey(S.phaseIdx, S.weekIdx, sk);
+  S.exIdx = 0;
+
+  // Check if existing (editing)
+  const existing = DB.get(S.sessionKey_k);
+  if (existing && !existing.completed) {
+    S.wo = existing;
+    autosave();
+    showWorkout();
+  } else {
+    const exercises = {};
+    const phase = getPhase();
+    (phase.sessions[sk]||[]).forEach(ex=>{
+      exercises[ex.name] = { selectedSub:0, sets: freshSets(ex, S.weekIdx), note:'' };
+    });
+    S.wo = {
+      phase: S.phaseIdx+1, week: S.weekIdx+1, session: sk,
+      date: new Date().toISOString().split('T')[0],
+      completed: false, exercises
+    };
+    autosave();
+    S.exIdx = -1; // start on warmup tab
+    showWorkout();
+  }
+}
+
+function autosave() {
+  if (S.wo) DB.set(S.sessionKey_k, S.wo);
+}
+
+// ═══════════════════════════════════════════════════════════
+// WORKOUT RENDER
+// ═══════════════════════════════════════════════════════════
+function renderWorkout() {
+  const exercises = getExercises();
+  const doneCount = exercises.filter(e=> (S.wo.exercises[e.name]?.sets||[]).every(s=>s.done)).length;
+
+  // Header (always render)
+  document.getElementById('wo-hdr').innerHTML = `
+    <div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;color:var(--ac);text-transform:uppercase">${esc(S.sessionKey)}</div>
+      <div style="font-size:12px;color:var(--mu)">P${S.phaseIdx+1} · ${esc(getPhase().weekLabels[S.weekIdx])}</div>
+    </div>
+    <div style="font-size:13px;color:var(--mu)">${doneCount}/${exercises.length} done</div>`;
+
+  // Pills — WU tab first, then exercises (always render)
+  const wuPill = `<div class="${S.exIdx===-1?'pill cur':'pill'}" onclick="jumpEx(-1)" style="font-weight:700">WU</div>`;
+  const exPills = exercises.map((e,i)=>{
+    const d=S.wo.exercises[e.name]; const done=d?.sets?.every(s=>s.done);
+    const cls = i===S.exIdx?'pill cur':done?'pill done':'pill';
+    return `<div class="${cls}" onclick="jumpEx(${i})">${done?'✓ ':''}${i+1}</div>`;
+  }).join('');
+  document.getElementById('wo-pills').innerHTML = wuPill + exPills;
+
+  // ── Warmup tab ──
+  if (S.exIdx === -1) {
+    const isLeg = S.sessionKey.includes('Legs') || S.sessionKey.includes('Full Body');
+    const item = (name, detail) => `<div style="background:var(--su);border:1px solid var(--br);border-radius:10px;padding:14px 16px;margin-bottom:8px"><div style="font-size:15px;font-weight:500">${name}</div><div style="font-size:13px;color:var(--mu);margin-top:3px">${detail}</div></div>`;
+    let wu = `<div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px">General Warmup</div>`;
+    wu += item('Low Intensity Cardio','~5 min · aim for 100-135 BPM · any cardio machine');
+    wu += item('Arm Swings','1 set · 12 reps · swing arms out to the sides');
+    wu += item('Cable External Rotation','1 set · 15 each side');
+    if (isLeg) {
+      wu += item('Front/Back Leg Swing','1 set · 12 each leg · leg days only');
+      wu += item('Side/Side Leg Swing','1 set · 12 each leg · leg days only');
+    }
+    wu += item('Foam Rolling','Optional · 0-3 min · quads, lats, calves');
+    const phaseNote = PHASE_NOTES[S.phaseIdx] || '';
+    wu += `<div style="background:var(--su);border:1px solid var(--ac);border-radius:10px;padding:14px 16px;margin-top:16px">
+      <div style="font-size:11px;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600">${getPhase().name} — What to focus on</div>
+      <div style="font-size:14px;color:#ccc;line-height:1.6">${phaseNote}</div>
+    </div>`;
+    wu += `<div style="margin-top:8px;font-size:12px;color:var(--mu);line-height:1.6">Exercise-specific warm-up sets are shown on each exercise card below.</div>`;
+    document.getElementById('wo-body').innerHTML = `<div style="padding:16px;padding-bottom:100px">${wu}</div>`;
+    document.getElementById('wo-nav').innerHTML = `
+      <div style="flex:1"></div>
+      <button class="btn btn-primary" style="flex:2;padding:14px 0;font-size:15px;border-radius:10px" onclick="navEx(1)">Start Workout →</button>`;
+    return;
+  }
+
+  const ex = exercises[S.exIdx];
+  if (!ex) return;
+
+  const exd = S.wo.exercises[ex.name] || { selectedSub:0, sets:freshSets(ex, S.weekIdx), note:'' };
+  S.wo.exercises[ex.name] = exd;
+  const allCurDone = exd.sets.every(s=>s.done);
+  const selSub = exd.selectedSub||0;
+  const displayName = selSub===1 ? ex.sub1 : selSub===2 ? ex.sub2 : ex.name;
+  const last = getLastLog(ex.name);
+
+  // Previous performance (other weeks, same exercise + session type)
+  const prevPerf = getPrevPerf(ex.name);
+  const myNotes  = getNotes(ex.name);
+
+  // Subs
+  const subs = [ex.name];
+  if (ex.sub1 && ex.sub1!=='—') subs.push(ex.sub1);
+  if (ex.sub2 && ex.sub2!=='—') subs.push(ex.sub2);
+
+  let body = '';
+
+  // Title
+  const ytUrl = YT[ex.name] || YT[displayName] || null;
+  body += `<div style="margin-bottom:12px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+    <div style="flex:1;min-width:0">
+      <div class="ex-title">${esc(displayName)}</div>
+      ${selSub>0?`<div style="font-size:12px;color:var(--ac2);margin-top:2px">↳ substitution</div>`:''}
+    </div>
+    ${ytUrl?`<a href="${ytUrl}" target="_blank" rel="noopener" style="flex-shrink:0;background:#ff0000;color:#fff;border-radius:6px;padding:7px 11px;font-size:13px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:4px;margin-top:4px;-webkit-tap-highlight-color:transparent">▶ YT</a>`:''}
+  </div>`;
+
+  // Stats
+  const wSets=ex.working[S.weekIdx], wReps=ex.reps[S.weekIdx], wRpe=ex.rpe[S.weekIdx];
+  body += `<div class="stat-grid" style="margin-bottom:14px">
+    ${[['SETS',wSets],['REPS',wReps],['RPE',wRpe],['REST',ex.rest]].map(([l,v])=>`
+      <div class="stat-box"><div class="stat-lbl">${l}</div><div class="stat-val">${esc(v)}</div></div>`).join('')}
+  </div>`;
+
+  // Warmup guide
+  if (ex.warmup!=='0') {
+    const nWu = ex.warmup.includes('-') ? parseInt(ex.warmup.split('-')[1]) : parseInt(ex.warmup);
+    // Get target weight: current set 1 entry or last session set 1
+    const curW = exd.sets[0]?.weight;
+    const lastW = last?.sets[0]?.weight;
+    const targetW = curW || lastW || '';
+    const wuSets = calcWarmupSets(nWu, targetW, wReps, S.phaseIdx);
+
+    body += `<div style="background:var(--su);border:1px solid var(--br);border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      <div class="sec-lbl" style="margin-bottom:8px">Warm-up Guide (${ex.warmup} set${nWu!==1?'s':''})</div>`;
+
+    if (wuSets.length) {
+      wuSets.forEach(ws => {
+        const wLabel = ws.weight ? `<strong style="color:var(--ac2)">${ws.weight} lbs</strong>` : `<strong style="color:var(--ac2)">~${ws.pct}%</strong>`;
+        body += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;font-size:14px">
+          <span style="color:var(--mu);min-width:42px">${ws.label}</span>
+          ${wLabel}
+          <span style="color:var(--mu)">×</span>
+          <span>${ws.reps} reps</span>
+        </div>`;
+      });
+      if (!targetW) body += `<div style="font-size:12px;color:var(--mu);margin-top:4px">Enter your working weight above to get exact numbers</div>`;
+    } else {
+      body += `<div style="font-size:13px;color:var(--mu)">Enter your working weight to calculate warm-up weights</div>`;
+    }
+    body += `</div>`;
+  }
+
+  // Substitution
+  if (subs.length>1) {
+    body += `<div style="margin-bottom:14px"><div class="sec-lbl">Exercise</div><div style="display:flex;gap:6px;flex-wrap:wrap">`;
+    subs.forEach((s,i)=>{ body += `<button class="sub-btn ${selSub===i?'active':''}" onclick="setSub(${i})">${esc(s)}</button>`; });
+    body += `</div></div>`;
+  }
+
+  // Sets
+  body += `<div style="margin-bottom:14px"><div class="sec-lbl">Working Sets</div><div style="display:flex;flex-direction:column;gap:8px" id="set-rows">`;
+  exd.sets.forEach((s,i)=>{
+    body += `<div class="set-row">
+      <div class="set-num">${i+1}</div>
+      <input type="number" placeholder="lbs/kg" value="${esc(s.weight)}" style="text-align:center" oninput="updSet(${i},'weight',this.value)"/>
+      <input type="number" placeholder="${esc(wReps)}" value="${esc(s.reps)}" style="text-align:center" oninput="updSet(${i},'reps',this.value)"/>
+      <button class="done-btn ${s.done?'done':''}" onclick="togDone(${i})">${s.done?'✓':'○'}</button>
+    </div>`;
+  });
+  body += `</div></div>`;
+
+  // Previous performance
+  if (prevPerf.length) {
+    body += `<div class="card" style="padding:12px 14px;margin-bottom:14px">
+      <div class="sec-lbl" style="margin-bottom:10px">Previous performance</div>`;
+    prevPerf.forEach(p=>{
+      body += `<div style="margin-bottom:8px">
+        <div style="font-size:11px;color:var(--mu);margin-bottom:4px">Week ${p.week} · ${fmtDate(p.date)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${p.sets.map((s,i)=>`<div style="background:var(--su2);border-radius:6px;padding:3px 9px;font-size:13px">
+            <span style="color:var(--mu);font-size:11px">#${i+1} </span><span style="color:var(--ac2)">${esc(s.weight||'—')}</span>${s.weight?'<span style="color:var(--mu)"> ×</span>':''}
+            <span> ${esc(s.reps||'—')}</span>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    });
+    body += `</div>`;
+  }
+
+  // Notes
+  body += `<div class="card" style="padding:12px 14px;margin-bottom:14px">
+    <div class="sec-lbl">My Notes</div>
+    <textarea rows="3" placeholder="How'd it feel? Weight too easy/hard? Anything to remember next time…" oninput="updNote(this.value)">${esc(exd.note||'')}</textarea>
+    ${myNotes.length ? `<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+      <div class="sec-lbl">Previous notes</div>
+      ${myNotes.map(n=>`<div class="note-prev">
+        <div class="note-prev-meta">${fmtDate(n.date)} · P${n.phase} W${n.week} · ${esc(n.session)}</div>
+        <div class="note-prev-text">${esc(n.text)}</div>
+      </div>`).join('')}
+    </div>` : ''}
+  </div>`;
+
+  // Form notes
+  body += `<div class="card" style="padding:12px 14px;margin-bottom:14px">
+    <div class="sec-lbl">Form Notes</div>
+    <div style="font-size:14px;line-height:1.5;color:#ccc">${esc(ex.notes)}</div>
+  </div>`;
+
+  // Jeff's Notes from PDF
+  const jeffNote = JEFF_NOTES[ex.name] || JEFF_NOTES[displayName] || null;
+  if (jeffNote) {
+    body += `<div class="card" style="padding:12px 14px;margin-bottom:14px">
+      <div class="sec-lbl" style="color:var(--ac2)">Jeff's Notes</div>
+      <div style="font-size:14px;line-height:1.6;color:#ccc">${esc(jeffNote)}</div>
+    </div>`;
+  }
+
+  document.getElementById('wo-body').innerHTML = body;
+
+  // Bottom nav
+  const isLast = S.exIdx >= exercises.length - 1;
+  document.getElementById('wo-nav').innerHTML = `
+    <button class="btn btn-ghost" style="flex:1;padding:14px 0;font-size:15px;${S.exIdx===-1?'color:#444':''}" onclick="navEx(-1)" ${S.exIdx===-1?'disabled':''}>← Prev</button>
+    <button class="btn ${allCurDone||isLast?'btn-primary':'btn-ghost'}" style="flex:2;padding:14px 0;font-size:15px;border-radius:10px" onclick="${isLast?'finishSession()':'navEx(1)'}">${isLast?'Finish ✓':allCurDone?'Next →':'Next →'}</button>
+    <button class="btn btn-ghost" style="flex:1;padding:14px 0;font-size:13px;border-radius:10px;color:#555;border-color:#333" onclick="finishSession()">End</button>`;
+}
+
+function updSet(i, field, val) {
+  const ex = getEx(); if(!ex) return;
+  const exd = S.wo.exercises[ex.name];
+  if (exd && exd.sets[i]) { exd.sets[i][field]=val; autosave(); }
+}
+
+function togDone(i) {
+  const ex = getEx(); if(!ex) return;
+  const exd = S.wo.exercises[ex.name]; if(!exd) return;
+  const s = exd.sets[i];
+  // Auto-fill from previous set or last logged
+  let w=s.weight, r=s.reps;
+  if (!s.done && !w && !r) {
+    for (let j=i-1;j>=0;j--) { if(exd.sets[j].weight||exd.sets[j].reps){w=exd.sets[j].weight;r=exd.sets[j].reps;break;} }
+    if (!w&&!r) {
+      const prev=getPrevPerf(ex.name);
+      if (prev.length&&prev[0].sets[i]) { w=prev[0].sets[i].weight; r=prev[0].sets[i].reps; }
+      else if (prev.length&&prev[0].sets[0]) { w=prev[0].sets[0].weight; r=prev[0].sets[0].reps; }
+    }
+  }
+  exd.sets[i]={...s, weight:w, reps:r, done:!s.done};
+  autosave(); renderWorkout();
+}
+
+function setSub(i) {
+  const ex=getEx(); if(!ex) return;
+  S.wo.exercises[ex.name].selectedSub=i;
+  autosave(); renderWorkout();
+}
+
+function updNote(val) {
+  const ex=getEx(); if(!ex) return;
+  S.wo.exercises[ex.name].note=val;
+  autosave();
+}
+
+function jumpEx(i) { S.exIdx=i; saveNavState(); renderWorkout(); }
+
+function navEx(dir) {
+  const next = S.exIdx+dir;
+  const exes = getExercises();
+  if (next>=-1&&next<exes.length) { S.exIdx=next; saveNavState(); renderWorkout(); }
+}
+
+async function finishSession() {
+  S.wo.completed = true;
+  S.wo.date = new Date().toISOString().split('T')[0];
+  autosave();
+  showHome();
+  try { await syncToAirtable(S.wo); showToast('Synced to Airtable ✓', 'var(--gr)'); }
+  catch(e) { showToast('Saved locally. Airtable sync failed.', 'var(--ac)'); }
+}
+
+function showToast(msg, color) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:${color};color:#fff;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:500;z-index:999;font-family:'DM Sans',sans-serif;white-space:nowrap`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 3000);
+}
+
+// ─── YOUTUBE VIDEO LINKS ────────────────────────────────
+const YT = {
+  "Squat":                                         "https://youtu.be/bEv6CCg2BC8?t=147",
+  "Pause Squat (Back off)":                        "https://youtu.be/1Rd1QgA46hQ",
+  "Barbell RDL":                                   "https://youtu.be/_oyxCn2iSjU?t=95",
+  "Dumbbell RDL":                                  "https://youtu.be/V5u2AP9wBwE",
+  "Walking Lunge":                                 "https://youtu.be/Y4Vv2ASsyhs?t=536",
+  "Seated Leg Curl":                               "https://youtu.be/2CMmuH4qJh0",
+  "Slow Seated Leg Curl (3s up, 3s down)":         "https://youtu.be/VSLULA0v0uI",
+  "Leg Press Toe Press":                           "https://youtu.be/VJ_9xii47Sk",
+  "Leg Press":                                     "https://youtu.be/didU4ZwAkPI?t=241",
+  "Leg Extension":                                 "https://youtu.be/ljO4jkwv8wQ?t=203",
+  "Seated Calf Raise":                             "https://youtu.be/-qsRtp_PbVM?t=311",
+  "Decline Plate-Weighted Crunch":                 "https://youtu.be/Aos574-Brzw",
+  "Cable Crunch":                                  "https://youtu.be/2RrGnjxSsiA?t=124",
+  "Bench Press":                                   "https://youtu.be/vcBig73ojpE?t=134",
+  "Bench Press (Top Set)":                         "https://youtu.be/vcBig73ojpE?t=134",
+  "Bench Press (Back Off AMRAP)":                  "https://youtu.be/vcBig73ojpE?t=134",
+  "Larsen Press":                                  "https://youtu.be/RQjPWrMMDqQ",
+  "Standing DB Arnold Press":                      "https://www.youtube.com/watch?v=zOpA1Op0zvc",
+  "A1. Press-Around":                              "https://youtu.be/NsEbXsTwas8?t=483",
+  "A2. Pec Static Stretch":                        "https://youtu.be/B5ZoqtHClCA",
+  "Cross-Body Cable Y-Raise (Side Delt)":          "https://youtu.be/Jt2hV6dCbmE",
+  "Squeeze-Only Tri Pressdown + OHT Ext":          "https://youtu.be/M9k0RcOQKOo",
+  "N1-Style Cross-Body Tri Extension":             "https://youtu.be/tkCXYakxafs",
+  "Lat Pulldown (Feeder Sets)":                    "https://youtu.be/O94yEoGXtBY?t=150",
+  "Lat Pulldown (Failure Set + Dropset)":          "https://youtu.be/O94yEoGXtBY?t=150",
+  "Omni-Grip Machine Chest-Supported Row":         "https://youtu.be/w2YTOoDBOZg",
+  "A1. Bottom-Half DB Lat Pullover":               "https://youtu.be/blJj6xxOJQs",
+  "A2. Lat Static Stretch":                        "https://youtu.be/gxD9coWulU0",
+  "Omni-Direction Face Pull":                      "https://youtu.be/uoWXumFUeCc",
+  "EZ-Bar Curl":                                   "https://www.youtube.com/watch?v=Dd0t5UOCEUc",
+  "EZ-Bar Curl (Heavy)":                           "https://www.youtube.com/watch?v=Dd0t5UOCEUc",
+  "Bottom-Half Preacher Curl":                     "https://youtu.be/hAELX8JE9uw",
+  "Deadlift":                                      "https://youtu.be/VL5Ab0T07e4?t=175",
+  "Stiff-Leg Deadlift":                            "https://youtu.be/EbDSWqgmcA0",
+  "Close-Grip Barbell Incline Press":              "https://youtu.be/0P4Ep0SBW5Q",
+  "Chin-Up":                                       "https://youtu.be/-d2Uui6MtRk",
+  "Kroc Row":                                      "https://youtu.be/nD0KoWhnTks",
+  "Diamond Pushup":                                "https://youtu.be/3RprT_9LAZg",
+  "Squat / Machine Squat":                         "https://youtu.be/bEv6CCg2BC8?t=147",
+  "High-Incline Smith Machine Press":              "https://youtu.be/egBQ9Svdnok",
+  "Egyptian Cable Lateral Raise":                  "https://youtu.be/SJqInYJcg5k?t=653",
+  "Overhead Cable Triceps Extension":              "https://youtu.be/qIW3z-ydg-M",
+  "Cable Triceps Kickback":                        "https://youtu.be/94DXwlcX8Po?t=327",
+  "Neutral-Grip Lat Pulldown":                     "https://youtu.be/12xHxUnBEiI?t=240",
+  "Pendlay Row":                                   "https://youtu.be/axoeDmW0oAY?t=185",
+  "Reverse Pec Deck":                              "https://youtu.be/qfc70k40318?t=259",
+  "Hammer Cheat Curl":                             "https://youtu.be/qVek72z3F1U?t=536",
+  "Hack Squat (W1,3) / Deadlift (W2,4)":          "https://youtu.be/wEgQUCdtFLg",
+  "Hack Squat":                                    "https://youtu.be/wEgQUCdtFLg",
+  "Seated DB Shoulder Press":                      "https://youtu.be/ae9IxwoEpQ8?t=507",
+  "Close-Grip Seated Cable Row":                   "https://youtu.be/PAXkl-AdJFg?t=335",
+  "Weighted Dip":                                  "https://youtu.be/yN6Q1UI_xkE?t=75",
+  "Machine Lateral Raise":                         "https://youtu.be/-9QsrJ542ao",
+  "Front Squat":                                   "https://youtu.be/v-mQm_droHg?t=135",
+  "LLPT Plank":                                    "https://youtu.be/1G0y8D5rFDc?t=220",
+  "Low Incline DB Press":                          "https://youtu.be/6-PFsU1q1kU",
+  "Machine Shoulder Press":                        "https://www.youtube.com/watch?v=flr4ohSl0j8",
+  "Cable Crossover Ladder":                        "https://youtu.be/NsEbXsTwas8?t=285",
+  "A1: Lean-In Constant Tension DB Lateral Raise": "https://youtu.be/R45z4nt7nxI",
+  "A2: Side Delt Static Stretch":                  "https://youtu.be/-AcB69YVt9s",
+  "Overhead Triceps Extension":                    "https://youtu.be/qIW3z-ydg-M",
+  "Med-Ball Close Grip Push Up":                   "https://youtu.be/zlx_sw9SCp0",
+  "1-Arm Half Kneeling Lat Pulldown":              "https://youtu.be/B0W4DQeo1tE",
+  "Omni-Grip Lat Pulldown":                        "https://youtu.be/qVek72z3F1U?t=927",
+  "Machine Low Row":                               "https://youtu.be/FAOL2S-5KoA",
+  "Cable Shrug-In":                                "https://youtu.be/C6sYjDFuq9I?t=354",
+  "A1: EZ-Bar Modified Bicep 21's":               "https://youtu.be/4T7thZvFNSI",
+  "A2: Bicep Static Stretch":                      "https://youtu.be/P6PXY01u-DY",
+  "Pull-Up (Cluster Sets)":                        "https://youtu.be/Hdc7Mw6BIEE?t=99",
+  "Wide-Grip Cable Row (Cluster Sets)":            "https://youtu.be/T5YjTGwi3do",
+};
+
+// ─── DURATION ESTIMATE ──────────────────────────────────
+function parseRest(r) {
+  if (!r || r === '0 min') return 0;
+  if (r.includes('15 sec')) return 0.25;
+  const range = r.match(/(\d+)[–-](\d+)\s*min/);
+  if (range) return (parseInt(range[1]) + parseInt(range[2])) / 2;
+  const single = r.match(/(\d+)\s*min/);
+  if (single) return parseInt(single[1]);
+  return 2;
+}
+function parseWarmup(w) {
+  if (!w || w === '0') return 0;
+  const range = w.match(/(\d+)[–-](\d+)/);
+  if (range) return (parseInt(range[1]) + parseInt(range[2])) / 2;
+  return parseFloat(w) || 0;
+}
+function calcDuration(phaseIdx, weekIdx, sessionKey) {
+  const exercises = PROGRAM.phases[phaseIdx].sessions[sessionKey] || [];
+  let mins = 10; // general warmup
+  exercises.forEach(ex => {
+    const wu   = parseWarmup(ex.warmup);
+    const ws   = ex.working[weekIdx] || 1;
+    const rest = parseRest(ex.rest);
+    mins += wu * 1.5;          // warmup sets: ~1.5 min each
+    mins += ws * (rest + 0.75); // working sets: rest + ~45s execution
+    mins += 1;                  // transition
+  });
+  const lo = Math.round(mins / 5) * 5;
+  const hi = lo + 10;
+  return `~${lo}–${hi} min`;
+}
+
+// ─── WARMUP ───────────────────────────────────────────────
+function calcWarmupSets(numWarmup, targetWeight, targetReps, phaseIdx) {
+  const n = parseInt(numWarmup) || 0;
+  if (n === 0) return [];
+  const w = parseFloat(targetWeight);
+  const rInt = parseInt(targetReps) || 8;
+
+  // Phase 3 high-rep protocol (15+ reps)
+  if (phaseIdx === 2 && rInt >= 15) {
+    if (n === 1) return [{ label:'Set 1', pct:60, weight: w ? Math.round(w*0.6) : null, reps:'5-10' }];
+    return [
+      { label:'Set 1', pct:50, weight: w ? Math.round(w*0.5) : null, reps:'5-10' },
+      { label:'Set 2', pct:70, weight: w ? Math.round(w*0.7) : null, reps:'5-10' }
+    ];
+  }
+
+  // Phase 1 & 2 protocol
+  const fewerReps = r => Math.max(Math.round(r * 0.65), 2);
+  const evenFewer = r => Math.max(Math.round(r * 0.45), 1);
+
+  if (n === 1) return [
+    { label:'Set 1', pct:60, weight: w ? Math.round(w*0.6) : null, reps: String(rInt) }
+  ];
+  if (n === 2) return [
+    { label:'Set 1', pct:50, weight: w ? Math.round(w*0.5) : null, reps: String(rInt) },
+    { label:'Set 2', pct:70, weight: w ? Math.round(w*0.7) : null, reps: String(fewerReps(rInt)) }
+  ];
+  // 3 or 3-4
+  return [
+    { label:'Set 1', pct:45, weight: w ? Math.round(w*0.45) : null, reps: String(rInt) },
+    { label:'Set 2', pct:65, weight: w ? Math.round(w*0.65) : null, reps: String(fewerReps(rInt)) },
+    { label:'Set 3', pct:85, weight: w ? Math.round(w*0.85) : null, reps: String(evenFewer(rInt)) }
+  ];
+}
+
+
+
+// ═══════════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════════
+function renderHistory() {
+  const all = DB.all();
+  const sessions = Object.entries(all).sort((a,b)=>b[1].date?.localeCompare(a[1].date||'')||0);
+  const total = sessions.length;
+  document.getElementById('hist-sub').textContent = `${total} session${total!==1?'s':''} logged`;
+
+  if (!total) {
+    document.getElementById('hist-body').innerHTML = `<div style="color:var(--mu);text-align:center;padding:60px 0;font-size:15px">No sessions logged yet.<br>Go crush a workout!</div>`;
+    return;
+  }
+
+  let html = '';
+  sessions.forEach(([k,rec])=>{
+    const sk = rec.session||'';
+    const exList = (PROGRAM.phases[rec.phase-1]?.sessions[sk]||[]);
+    const filled = exList.slice(0,3).map(e=>{
+      const exd=rec.exercises?.[e.name]; if(!exd) return null;
+      const w=exd.sets?.filter(s=>s.weight); if(!w?.length) return null;
+      return `${e.name.split(' ')[0]}: ${w.map(s=>s.weight+'lbs').join('/')}`;
+    }).filter(Boolean);
+
+    html += `<div class="card" style="margin-bottom:10px;cursor:pointer" onclick="openDetail('${esc(k)}','${esc(sk)}')">
+      <div class="hist-row">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;text-transform:uppercase">${esc(sk)}</div>
+            <div style="font-size:12px;color:var(--mu);margin-top:2px">P${rec.phase} W${rec.week} · ${fmtDate(rec.date)}</div>
+          </div>
+          <div style="font-size:12px;color:${rec.completed?'var(--gr)':'var(--ac2)'}">
+            ${rec.completed?'✓ done':'in progress'}
+          </div>
+        </div>
+        ${filled.length?`<div style="margin-top:6px;font-size:12px;color:var(--mu)">${filled.join(' &nbsp;·&nbsp; ')}</div>`:''}
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('hist-body').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════
+function renderSettings() {
+  const sessionCount = DB.keys().length;
+  const synced = !!(AT.baseId && AT.tableId);
+  document.getElementById('settings-body').innerHTML = `
+
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:15px;font-weight:500">Airtable Sync</div>
+        <div style="font-size:12px;color:${synced?'var(--gr)':'var(--mu)'}">${synced?'✓ Connected':'Not connected'}</div>
+      </div>
+      <div style="font-size:13px;color:var(--mu);margin-bottom:12px;line-height:1.6">
+        Your data syncs to Airtable automatically after every session. ${sessionCount} session${sessionCount!==1?'s':''} stored on this device.
+      </div>
+      <input type="text" id="at-token-input" placeholder="Airtable personal access token" value="${AT.token}" style="margin-bottom:8px;font-size:13px"/>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" style="flex:1;border-radius:8px;padding:10px 0;font-size:14px" onclick="saveATToken()">Save Token</button>
+        <button class="btn btn-ghost" style="padding:10px 16px;font-size:14px" onclick="testAirtable()">Test</button>
+      </div>
+      <div id="at-status" style="margin-top:8px;font-size:13px;min-height:18px"></div>
+      <div style="margin-top:10px;font-size:12px;color:var(--mu)">
+        ⚠ Regenerate your token at <strong style="color:var(--tx)">airtable.com/create/tokens</strong> — you shared the current one in a chat.
+      </div>
+    </div>
+
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:500;margin-bottom:8px">Cross-device sync</div>
+      <div style="font-size:13px;color:var(--mu);margin-bottom:12px;line-height:1.6">
+        Use these to keep your phone and any other device in sync. Airtable is always the source of truth.
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:10px 0;font-size:14px;margin-bottom:8px;border-radius:8px" onclick="pullFromAirtable()">⬇ Pull from Airtable → this device</button>
+      <button class="btn btn-ghost" style="width:100%;padding:10px 0;font-size:14px" onclick="syncAll()">⬆ Push this device → Airtable</button>
+      <div id="sync-all-status" style="margin-top:8px;font-size:13px;color:var(--gr);text-align:center;min-height:18px"></div>
+    </div>
+
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:500;margin-bottom:4px;color:#ef4444">Reset All Data</div>
+      <div style="font-size:13px;color:var(--mu);margin-bottom:12px">Clears everything stored on this device. Data already synced to Airtable is safe.</div>
+      <button class="btn btn-ghost" style="padding:10px 16px;font-size:14px;border-color:#ef4444;color:#ef4444" onclick="resetAll()">Reset data on this device</button>
+    </div>
+
+    <div style="padding:8px 0;text-align:center;font-size:12px;color:var(--mu)">Data stored on your iPhone + synced to Airtable after each session</div>`;
+}
+
+function saveATToken() {
+  AT.token = document.getElementById('at-token-input').value.trim();
+  AT.baseId = ''; AT.tableId = ''; // force re-discovery
+  document.getElementById('at-status').innerHTML = '<span style="color:var(--gr)">✓ Saved — will connect on next session finish</span>';
+}
+
+async function testAirtable() {
+  const statusEl = document.getElementById('at-status');
+  statusEl.textContent = 'Testing…';
+  const tok = document.getElementById('at-token-input').value.trim();
+  if (tok) AT.token = tok;
+  _fieldsReady = false; // force re-check
+  try {
+    await ensureFields();
+    statusEl.innerHTML = `<span style="color:var(--gr)">✓ Connected — all fields ready.</span>`;
+  } catch(e) {
+    statusEl.innerHTML = `<span style="color:var(--ac)">Failed: ${e.message}</span>`;
+  }
+}
+
+async function syncAll() {
+  const el = document.getElementById('sync-all-status');
+  const all = DB.all();
+  const sessions = Object.values(all);
+  if (!sessions.length) { el.textContent = 'Nothing to sync.'; return; }
+  el.textContent = `Syncing ${sessions.length} sessions…`;
+  let ok = 0, errs = [];
+  for (const rec of sessions) {
+    try { await syncToAirtable(rec); ok++; }
+    catch(e) { errs.push(e.message); }
+  }
+  if (errs.length) {
+    el.innerHTML = `<span style="color:var(--ac)">✓ ${ok} synced, ${errs.length} failed: ${errs[0]}</span>`;
+  } else {
+    el.textContent = `✓ Synced ${ok}/${sessions.length} sessions`;
+  }
+}
+
+// Pull all records from Airtable and populate localStorage
+async function pullFromAirtable() {
+  document.getElementById('sync-all-status').textContent = 'Pulling from Airtable…';
+  try {
+    let allRecords = [], offset = null;
+    do {
+      const url = `https://api.airtable.com/v0/${AT.baseId}/${AT.tableId}` + (offset ? `?offset=${offset}` : '');
+      const r = await fetch(url, { headers: AT.hdrs() });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || `HTTP ${r.status}`); }
+      const data = await r.json();
+      allRecords = allRecords.concat(data.records || []);
+      offset = data.offset || null;
+    } while (offset);
+
+    // Group records back into session objects
+    const sessionMap = {};
+    allRecords.forEach(rec => {
+      const f = rec.fields;
+      const phase = f['Phase'], week = f['Week'], session = f['Session'], exName = f['Exercise'];
+      if (!phase || !week || !session || !exName) return;
+      const k = sKey(phase - 1, week - 1, session);
+      if (!sessionMap[k]) {
+        sessionMap[k] = { phase, week, session, date: f['Date']||'', completed: !!f['Completed'], exercises: {} };
+      }
+      // Parse "Sets Logged": "#1 185×4 ✓, #2 185×4 ✓"
+      const sets = (f['Sets Logged']||'').split(', ').filter(Boolean).map(s => {
+        const m = s.match(/#\d+\s+([^×]+)×([^\s✓,]+)(\s*✓)?/);
+        if (!m) return { weight:'', reps:'', done:false };
+        return { weight: m[1].trim()==='—'?'':m[1].trim(), reps: m[2].trim()==='—'?'':m[2].trim(), done: !!m[3] };
+      });
+      sessionMap[k].exercises[exName] = { selectedSub:0, sets, note: f['Note']||'' };
+    });
+
+    // Write into localStorage (Airtable wins on conflict)
+    Object.entries(sessionMap).forEach(([k,rec]) => DB.set(k, rec));
+    const count = Object.keys(sessionMap).length;
+    document.getElementById('sync-all-status').textContent = `✓ Pulled ${count} sessions from Airtable`;
+    renderHome();
+  } catch(e) {
+    document.getElementById('sync-all-status').textContent = `Failed: ${e.message}`;
+  }
+}
+
+function buildCSV() {
+  const all = DB.all();
+  const rows = [["Date","Phase","Week","Session","Exercise","Sub Used","Set #","Weight (lbs)","Reps","Done","Note"]];
+  const sessions = Object.values(all).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  sessions.forEach(rec => {
+    const exList = PROGRAM.phases[(rec.phase||1)-1]?.sessions[rec.session] || [];
+    exList.forEach(ex => {
+      const exd = rec.exercises?.[ex.name]; if (!exd) return;
+      const selSub = exd.selectedSub||0;
+      const subUsed = selSub===1?ex.sub1 : selSub===2?ex.sub2 : ex.name;
+      const sets = exd.sets || [];
+      if (!sets.length) {
+        rows.push([rec.date||'',rec.phase||'',rec.week||'',rec.session||'',ex.name,subUsed,'','','','',exd.note||'']);
+      } else {
+        sets.forEach((s,i)=>rows.push([
+          i===0?(rec.date||''):'', i===0?(rec.phase||''):'', i===0?(rec.week||''):'',
+          i===0?(rec.session||''):'', i===0?ex.name:'', i===0?subUsed:'',
+          i+1, s.weight||'', s.reps||'', s.done?'Yes':'No', i===0?(exd.note||''):''
+        ]));
+      }
+    });
+  });
+  return rows.map(r=>r.map(cell=>{
+    const s=String(cell);
+    return (s.includes(',')||s.includes('"')||s.includes('\n'))?`"${s.replace(/"/g,'""')}"`  :s;
+  }).join(',')).join('\n');
+}
+
+async function exportCSV() {
+  const csv      = buildCSV();
+  const filename = `ppl-tracker-${new Date().toISOString().split('T')[0]}.csv`;
+
+  // iOS Safari: use Web Share API to send to Files / Mail / Sheets etc.
+  if (navigator.canShare) {
+    try {
+      const file = new File([csv], filename, {type:'text/csv'});
+      if (navigator.canShare({files:[file]})) {
+        await navigator.share({files:[file], title:'PPL Tracker Export'});
+        return;
+      }
+    } catch(e) { if (e.name==='AbortError') return; } // user cancelled share sheet
+  }
+
+  // Desktop fallback: trigger download
+  try {
+    const blob = new Blob([csv],{type:'text/csv'});
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'),{href:url,download:filename});
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },1000);
+    return;
+  } catch(e){}
+
+  // Final fallback: show in a modal so they can copy-paste
+  showExportModal(csv);
+}
+
+function showExportModal(csv) {
+  const existing = document.getElementById('export-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'export-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:999;display:flex;flex-direction:column;padding:20px;gap:12px';
+  modal.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:\'Barlow Condensed\',sans-serif;font-size:22px;font-weight:800;text-transform:uppercase">Export Data</div>
+      <button onclick="document.getElementById('export-modal').remove()" style="background:transparent;border:1px solid var(--br);color:var(--mu);border-radius:6px;padding:6px 12px;font-size:14px;cursor:pointer">Close</button>
+    </div>
+    <div style="font-size:13px;color:var(--mu)">Copy all of this, then paste into a new Google Sheet (paste into cell A1).</div>
+    <textarea id="csv-output" style="flex:1;font-size:11px;font-family:monospace;background:var(--su2);color:var(--tx);border:1px solid var(--br);border-radius:8px;padding:12px;white-space:pre">${esc(csv)}</textarea>
+    <button onclick="document.getElementById('csv-output').select();document.execCommand('copy');this.textContent='✓ Copied!'" style="background:var(--ac);color:#fff;border:none;border-radius:8px;padding:14px;font-size:15px;font-weight:500;cursor:pointer;font-family:\'DM Sans\',sans-serif">Copy to Clipboard</button>`;
+  document.body.appendChild(modal);
+  document.getElementById('csv-output').select();
+}
+
+function copyJSON() {
+  const data = localStorage.getItem('ppl_v2') || '{}';
+  navigator.clipboard.writeText(data).then(()=>{
+    document.getElementById('copy-status').textContent = '✓ Copied to clipboard';
+    setTimeout(()=>{ document.getElementById('copy-status').textContent=''; }, 3000);
+  }).catch(()=>{
+    // Fallback for older iOS
+    const ta = document.createElement('textarea');
+    ta.value = data; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    document.getElementById('copy-status').textContent = '✓ Copied to clipboard';
+    setTimeout(()=>{ document.getElementById('copy-status').textContent=''; }, 3000);
+  });
+}
+
+function saveUrl() {
+  const v = document.getElementById('sheets-url-input').value.trim();
+  CFG.sheetsUrl = v;
+  document.getElementById('url-status').innerHTML = `<span style="color:var(--gr)">✓ Saved</span>`;
+}
+
+async function testUrl() {
+  const v = document.getElementById('sheets-url-input').value.trim();
+  if (!v) { document.getElementById('url-status').innerHTML=`<span style="color:var(--ac)">Enter a URL first</span>`; return; }
+  document.getElementById('url-status').innerHTML = 'Testing…';
+  try {
+    await fetch(v, {method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'ping'})});
+    document.getElementById('url-status').innerHTML = `<span style="color:var(--gr)">✓ Connected</span>`;
+  } catch(e) {
+    document.getElementById('url-status').innerHTML = `<span style="color:var(--ac)">Could not connect. Check URL.</span>`;
+  }
+}
+
+function resetAll() {
+  if (confirm('Delete all workout data on this device?')) {
+    localStorage.removeItem('ppl_v2');
+    alert('Done. All local data cleared.');
+    showHome();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+// Auto-resume if app reloaded mid-workout
+if (restoreNavState() && S.view === 'workout') {
+  showWorkout();
+} else {
+  S.view = 'home';
+  renderHome();
+}
+</script>
+<div class="tab-bar" id="main-tab-bar">
+  <button class="tab-btn active" id="tab-home" onclick="tabNav('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </button>
+  <button class="tab-btn" id="tab-history" onclick="tabNav('history')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    History
+  </button>
+  <button class="tab-btn" id="tab-settings" onclick="tabNav('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Settings
+  </button>
+</div>
+</body>
+</html>
